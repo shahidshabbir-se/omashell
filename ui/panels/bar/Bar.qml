@@ -1,48 +1,57 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.config
+import qs.ui.widgets
 
 PanelWindow {
-    id: root
+  id: root
 
-    anchors {
-        top: true
-        left: true
-        right: true
+  anchors.top: true
+  anchors.left: true
+  anchors.right: true
+  implicitHeight: Constants.barHeight
+  color: Colors.background
+
+  signal calendarToggleRequested(real anchorX)
+  signal weatherToggleRequested(real anchorX)
+  signal worldClockToggleRequested(real anchorX)
+
+  Workspaces {
+    id: workspacesWidget
+    anchors.left: parent.left
+    anchors.leftMargin: 10
+    anchors.verticalCenter: parent.verticalCenter
+    screen: root.screen
+  }
+
+
+  Row {
+    anchors.right: parent.right
+    anchors.rightMargin: 10
+    anchors.verticalCenter: parent.verticalCenter
+    spacing: 14
+
+
+    Clock {
+      id: clockWidget
+
+      onCalendarToggleRequested:
+        root.calendarToggleRequested(root.contentItem.mapFromItem(clockWidget, clockWidget.width / 2, 0).x)
     }
 
-    implicitHeight: 32
-    color: "#1e1e2e"
+    Weather {
+      id: weatherWidget
 
-    Text {
-        anchors {
-            left: parent.left
-            verticalCenter: parent.verticalCenter
-            leftMargin: 12
-        }
-
-        text: "Quickshell"
-        color: "#cdd6f4"
-        font.pixelSize: 13
+      onToggleRequested:
+        root.weatherToggleRequested(root.contentItem.mapFromItem(weatherWidget, weatherWidget.width / 2, 0).x)
     }
 
-    Text {
-        anchors.centerIn: parent
+    WorldClock {
+      id: worldClockWidget
 
-        text: Qt.formatDateTime(new Date(), "hh:mm AP")
-        color: "#cdd6f4"
-        font.pixelSize: 13
+      onToggleRequested:
+        root.worldClockToggleRequested(root.contentItem.mapFromItem(worldClockWidget, worldClockWidget.width / 2, 0).x)
     }
-
-    Text {
-        anchors {
-            right: parent.right
-            verticalCenter: parent.verticalCenter
-            rightMargin: 12
-        }
-
-        text: "󰤨"
-        color: "#cdd6f4"
-        font.pixelSize: 16
-    }
+  }
 }

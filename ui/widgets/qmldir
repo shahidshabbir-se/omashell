@@ -1,0 +1,5 @@
+module qs.ui.widgets
+Clock 1.0 Clock.qml
+Weather 1.0 Weather.qml
+WorldClock 1.0 WorldClock.qml
+Workspaces 1.0 Workspaces.qml
