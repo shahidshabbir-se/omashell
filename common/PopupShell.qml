@@ -16,10 +16,17 @@ PanelWindow {
 
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.namespace: root.layerNamespace
-  WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+  // Interactive panels ask for the keyboard while they are open; the read-only
+  // ones (clock, weather, world clock) keep taking no keys at all.
+  WlrLayershell.keyboardFocus: root.keyboard && root.opened
+    ? WlrKeyboardFocus.OnDemand
+    : WlrKeyboardFocus.None
 
   property string layerNamespace: "omashell-popup"
   property bool opened: false
+  property bool keyboard: false
+  // A PanelNav (or anything with takeFocus()); focused on open when keyboard.
+  property var focusTarget: null
   property real anchorX: -1
   property int cardWidth: 340
   property int spacing: 14
@@ -34,7 +41,12 @@ PanelWindow {
     return reduceMotion ? 0 : ms
   }
 
-  function open() { opened = true }
+  function open() {
+    opened = true
+    if (keyboard && focusTarget && focusTarget.takeFocus)
+      Qt.callLater(function() { if (root.opened) root.focusTarget.takeFocus() })
+  }
+
   function close() { opened = false }
 
   function toggle() {
