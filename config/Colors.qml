@@ -31,4 +31,7 @@ QtObject {
   readonly property color brightCyan: "#0db9d7"
   readonly property color brightBlue: "#7da6ff"
   readonly property color brightMagenta: "#bb9af7"
+
+  readonly property color visualizerTop: "#7aa2f7"
+  readonly property color visualizerBottom: "#ad8ee6"
 }

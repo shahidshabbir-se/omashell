@@ -5,6 +5,7 @@ import qs.modules.bar.widgets.clock
 import qs.modules.bar.widgets.weather
 import qs.modules.bar.widgets.worldclock
 import qs.modules.bar.widgets.bluetooth
+import qs.modules.visualizer
 import qs.config
 
 ShellRoot {
@@ -84,6 +85,7 @@ ShellRoot {
     id: bluetoothPanel
     onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("bluetooth", direction) }
   }
+  Visualizer {}
 
   IpcHandler {
     target: "omashell"

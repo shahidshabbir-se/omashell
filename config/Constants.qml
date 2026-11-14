@@ -45,4 +45,22 @@ QtObject {
   readonly property int cellSpacing: 2
   readonly property int weekColumnWidth: 32
   readonly property int gutterWidth: 14
+
+  // Compact audio visualizer.
+  readonly property int visualizerBarCount: 72
+  readonly property int visualizerInputRange: 7
+  readonly property real visualizerInputGain: 2.2
+  readonly property real visualizerCenterWeight: 0.6
+  readonly property real visualizerNeighborWeight: 0.2
+  readonly property real visualizerLevelCurve: 0.6
+  readonly property real visualizerActivityThreshold: 0.01
+  readonly property int visualizerSilenceTimeout: 500
+  readonly property int visualizerBarWidth: 5
+  readonly property int visualizerBarSpacing: 4
+  readonly property int visualizerMaxBarHeight: 54
+  readonly property int visualizerMinBarHeight: 2
+  readonly property int visualizerBarRadius: 1
+  readonly property int visualizerHeight: 72
+  readonly property int visualizerBottomMargin: 1
+  readonly property int visualizerAnimationDuration: 300
 }
