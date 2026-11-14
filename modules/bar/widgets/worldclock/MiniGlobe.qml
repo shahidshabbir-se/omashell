@@ -21,7 +21,7 @@ Item {
   rotation: Geo.AXIAL_TILT
 
   FileView {
-    path: String(Qt.resolvedUrl("../../assets/world.json")).replace("file://", "")
+    path: String(Qt.resolvedUrl("../../../../assets/world.json")).replace("file://", "")
     printErrors: false
 
     onLoaded: {

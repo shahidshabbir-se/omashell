@@ -1,0 +1,4 @@
+module qs.modules.bar.widgets.weather
+Weather 1.0 Weather.qml
+WeatherPopup 1.0 WeatherPopup.qml
+singleton WeatherService 1.0 WeatherService.qml

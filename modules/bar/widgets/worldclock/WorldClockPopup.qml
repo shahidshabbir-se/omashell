@@ -1,7 +1,7 @@
 import QtQuick
 import qs.config
-import qs.providers
-import qs.ui.components
+import qs.common
+import qs.modules.bar.widgets.worldclock
 
 PopupShell {
   id: root
@@ -13,7 +13,7 @@ PopupShell {
   onOpenedChanged: if (opened) globeSpin.restart()
 
   function rowFill(offset, hovered) {
-    var alpha = WorldClockProvider.phaseFill(offset) + (hovered ? 0.05 : 0)
+    var alpha = WorldClockService.phaseFill(offset) + (hovered ? 0.05 : 0)
     return Qt.rgba(
       Colors.background.r + (Colors.foreground.r - Colors.background.r) * alpha,
       Colors.background.g + (Colors.foreground.g - Colors.background.g) * alpha,
@@ -27,7 +27,7 @@ PopupShell {
 
     ArcText {
       width: parent.width
-      text: WorldClockProvider.caption
+      text: WorldClockService.caption
       rise: 6
       pixelSize: Constants.fontCaption
       fontFamily: Constants.fontFamily
@@ -88,7 +88,7 @@ PopupShell {
     spacing: 6
 
     Repeater {
-      model: WorldClockProvider.rows
+      model: WorldClockService.rows
 
       Rectangle {
         id: cityRow
@@ -97,7 +97,7 @@ PopupShell {
 
         readonly property var offset: modelData.offset
         readonly property bool ready: offset !== undefined && offset !== null
-        readonly property bool lit: WorldClockProvider.isLit(offset)
+        readonly property bool lit: WorldClockService.isLit(offset)
 
         width: parent.width
         height: 69
@@ -143,7 +143,7 @@ PopupShell {
               }
 
               Text {
-                text: ready ? WorldClockProvider.dateAt(offset) : "\u2026"
+                text: ready ? WorldClockService.dateAt(offset) : "\u2026"
                 textFormat: Text.PlainText
                 color: Qt.darker(Colors.foreground, 1.55)
                 font.family: Constants.fontFamily
@@ -151,7 +151,7 @@ PopupShell {
               }
 
               Text {
-                visible: ready && WorldClockProvider.dayLabel(offset) !== ""
+                visible: ready && WorldClockService.dayLabel(offset) !== ""
                 text: "\u00B7"
                 textFormat: Text.PlainText
                 color: Qt.darker(Colors.foreground, 2.1)
@@ -160,8 +160,8 @@ PopupShell {
               }
 
               Text {
-                visible: ready && WorldClockProvider.dayLabel(offset) !== ""
-                text: ready ? WorldClockProvider.dayLabel(offset) : ""
+                visible: ready && WorldClockService.dayLabel(offset) !== ""
+                text: ready ? WorldClockService.dayLabel(offset) : ""
                 textFormat: Text.PlainText
                 color: Qt.darker(Colors.foreground, 1.55)
                 font.family: Constants.fontFamily
@@ -172,7 +172,7 @@ PopupShell {
             Text {
               anchors.left: parent.left
               anchors.verticalCenter: parent.verticalCenter
-              text: WorldClockProvider.greeting(offset)
+              text: WorldClockService.greeting(offset)
               opacity: rowHover.hovered ? 1 : 0
               visible: opacity > 0
               textFormat: Text.PlainText
@@ -198,7 +198,7 @@ PopupShell {
 
           Text {
             anchors.right: parent.right
-            text: ready ? WorldClockProvider.timeAt(offset) : "--:--"
+            text: ready ? WorldClockService.timeAt(offset) : "--:--"
             textFormat: Text.PlainText
             color: Colors.foreground
             font.family: Constants.fontFamily
@@ -209,7 +209,7 @@ PopupShell {
           Text {
             anchors.right: parent.right
             visible: ready
-            text: modelData.abbr + " " + WorldClockProvider.offsetLabel(offset)
+            text: modelData.abbr + " " + WorldClockService.offsetLabel(offset)
             textFormat: Text.PlainText
             color: Qt.darker(Colors.foreground, 2.1)
             font.family: Constants.fontFamily
@@ -237,7 +237,7 @@ PopupShell {
           }
 
           Rectangle {
-            x: Math.round(parent.width * WorldClockProvider.progressAt(offset) - 4)
+            x: Math.round(parent.width * WorldClockService.progressAt(offset) - 4)
             y: (parent.height - height) / 2
             width: 8
             height: 8

@@ -1,4 +1,0 @@
-module qs.ui.popups
-Calendar 1.0 Calendar.qml
-Weather 1.0 Weather.qml
-WorldClock 1.0 WorldClock.qml

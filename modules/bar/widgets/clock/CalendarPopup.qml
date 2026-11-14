@@ -1,6 +1,6 @@
 import QtQuick
 import qs.config
-import qs.ui.components
+import qs.common
 
 PopupShell {
   id: root

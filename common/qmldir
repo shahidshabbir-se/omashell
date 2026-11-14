@@ -1,4 +1,3 @@
-module qs.ui.components
+module qs.common
 PopupShell 1.0 PopupShell.qml
 ArcText 1.0 ArcText.qml
-MiniGlobe 1.0 MiniGlobe.qml

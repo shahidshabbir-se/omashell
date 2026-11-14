@@ -1,16 +1,16 @@
 import QtQuick
 import qs.config
-import qs.providers
-import qs.ui.components
+import qs.common
+import qs.modules.bar.widgets.weather
 
 PopupShell {
   id: root
 
   layerNamespace: "omashell-weather"
-  cardWidth: 560
+  cardWidth: 480
   spacing: 14
 
-  onOpenedChanged: if (opened) WeatherProvider.refreshIfStale()
+  onOpenedChanged: if (opened) WeatherService.refreshIfStale()
 
   Item {
     width: parent.width
@@ -26,7 +26,7 @@ PopupShell {
       Text {
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: 5
-        text: WeatherProvider.glyph
+        text: WeatherService.glyph
         textFormat: Text.PlainText
         color: Colors.foreground
         font.family: Constants.fontFamily
@@ -39,7 +39,7 @@ PopupShell {
 
         Text {
           id: tempBig
-          text: WeatherProvider.tempNumber || "\u2014"
+          text: WeatherService.tempNumber || "\u2014"
           textFormat: Text.PlainText
           color: Colors.foreground
           font.family: Constants.fontFamily
@@ -50,7 +50,7 @@ PopupShell {
         Text {
           anchors.top: tempBig.top
           anchors.topMargin: 10
-          text: WeatherProvider.tempUnit
+          text: WeatherService.tempUnit
           textFormat: Text.PlainText
           color: Colors.foreground
           font.family: Constants.fontFamily
@@ -68,7 +68,7 @@ PopupShell {
       spacing: 12
 
       Row {
-        visible: WeatherProvider.locationName !== ""
+        visible: WeatherService.locationName !== ""
         spacing: 6
 
         Text {
@@ -82,7 +82,7 @@ PopupShell {
 
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: WeatherProvider.locationName.toUpperCase()
+          text: WeatherService.locationName.toUpperCase()
           textFormat: Text.PlainText
           color: Qt.darker(Colors.foreground, 1.4)
           font.family: Constants.fontFamily
@@ -93,7 +93,7 @@ PopupShell {
 
       Row {
         id: weatherStats
-        visible: WeatherProvider.current !== null
+        visible: WeatherService.current !== null
         spacing: 36
 
         Column {
@@ -109,7 +109,7 @@ PopupShell {
           }
 
           Text {
-            text: WeatherProvider.feelsText
+            text: WeatherService.feelsText
             textFormat: Text.PlainText
             color: Colors.foreground
             font.family: Constants.fontFamily
@@ -130,7 +130,7 @@ PopupShell {
           }
 
           Text {
-            text: WeatherProvider.windText
+            text: WeatherService.windText
             textFormat: Text.PlainText
             color: Colors.foreground
             font.family: Constants.fontFamily
@@ -151,7 +151,7 @@ PopupShell {
           }
 
           Text {
-            text: WeatherProvider.humidityText
+            text: WeatherService.humidityText
             textFormat: Text.PlainText
             color: Colors.foreground
             font.family: Constants.fontFamily
@@ -163,7 +163,7 @@ PopupShell {
   }
 
   Text {
-    visible: WeatherProvider.current === null
+    visible: WeatherService.current === null
     text: "Fetching forecast\u2026"
     textFormat: Text.PlainText
     color: Qt.darker(Colors.foreground, 1.5)
@@ -173,7 +173,7 @@ PopupShell {
   }
 
   Rectangle {
-    visible: WeatherProvider.forecast.length > 0
+    visible: WeatherService.forecast.length > 0
     width: parent.width
     height: 1
     color: Colors.foreground
@@ -181,7 +181,7 @@ PopupShell {
   }
 
   Item {
-    visible: WeatherProvider.forecast.length > 0
+    visible: WeatherService.forecast.length > 0
     width: parent.width
     height: forecastRow.height
 
@@ -191,7 +191,7 @@ PopupShell {
       spacing: 44
 
       Repeater {
-        model: WeatherProvider.forecast
+        model: WeatherService.forecast
 
         Row {
           required property var modelData

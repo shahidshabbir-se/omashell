@@ -1,10 +1,20 @@
 import Quickshell
 import Quickshell.Io
-import qs.ui.panels.bar
-import qs.ui.popups
+import qs.modules.bar
+import qs.modules.bar.widgets.clock
+import qs.modules.bar.widgets.weather
+import qs.modules.bar.widgets.worldclock
 
 ShellRoot {
   id: shell
+
+  // The only place that maps a bar widget id to a popup. Keys match the ids in
+  // config/shell.json and WidgetRegistry.
+  readonly property var popupFor: ({
+    clock: calendar,
+    weather: weather,
+    worldclock: worldClock
+  })
 
   function showPopup(target, x) {
     if (target !== calendar) calendar.close()
@@ -14,6 +24,12 @@ ShellRoot {
     target.toggle()
   }
 
+  // Unknown id (no popup) is a no-op, not an error.
+  function showPopupFor(id, x) {
+    var popup = popupFor[id]
+    if (popup) showPopup(popup, x)
+  }
+
   Variants {
     model: Quickshell.screens
 
@@ -21,15 +37,13 @@ ShellRoot {
       required property var modelData
       screen: modelData
 
-      onCalendarToggleRequested: function(x) { shell.showPopup(calendar, x) }
-      onWeatherToggleRequested: function(x) { shell.showPopup(weather, x) }
-      onWorldClockToggleRequested: function(x) { shell.showPopup(worldClock, x) }
+      onWidgetActivated: function(id, x) { shell.showPopupFor(id, x) }
     }
   }
 
-  Calendar { id: calendar }
-  Weather { id: weather }
-  WorldClock { id: worldClock }
+  CalendarPopup { id: calendar }
+  WeatherPopup { id: weather }
+  WorldClockPopup { id: worldClock }
 
   IpcHandler {
     target: "omashell"

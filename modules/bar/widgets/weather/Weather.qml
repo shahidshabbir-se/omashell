@@ -1,6 +1,6 @@
 import QtQuick
 import qs.config
-import qs.providers
+import qs.modules.bar.widgets.weather
 
 Item {
   id: root
@@ -37,7 +37,7 @@ Item {
 
     Text {
       anchors.centerIn: parent
-      text: WeatherProvider.glyph
+      text: WeatherService.glyph
       textFormat: Text.PlainText
       color: Colors.foreground
       font.family: Constants.fontFamily

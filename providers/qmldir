@@ -1,3 +1,0 @@
-module qs.providers
-singleton WeatherProvider 1.0 WeatherData.qml
-singleton WorldClockProvider 1.0 WorldClockData.qml
