@@ -34,7 +34,10 @@ Item {
   readonly property real tightHeight: Math.max(1, ink.height)
 
   readonly property real paintedScale: paintedSize > 0
-    ? Math.min(paintedSize, width, height) / Math.max(tightWidth, tightHeight)
+    // Fit the ink *height* to paintedSize, not its longest side: a wide, flat
+    // glyph fitted by its width ends up shorter than a square one and reads as
+    // a smaller icon next to it. Clamped so a wide glyph still fits the box.
+    ? Math.min(paintedSize / tightHeight, width / tightWidth, height / tightHeight)
     : 1
   readonly property real paintedWidth: tightWidth * paintedScale
   readonly property real paintedHeight: tightHeight * paintedScale

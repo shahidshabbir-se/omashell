@@ -30,12 +30,21 @@ ShellRoot {
     if (popup) showPopup(popup, x)
   }
 
+  // Which widget's popup is open, derived from popupFor so the id -> popup map
+  // stays the only place ids appear. Empty when none is open.
+  readonly property string activeWidgetId: {
+    for (var id in popupFor)
+      if (popupFor[id].opened) return id
+    return ""
+  }
+
   Variants {
     model: Quickshell.screens
 
     delegate: Bar {
       required property var modelData
       screen: modelData
+      activeId: shell.activeWidgetId
 
       onWidgetActivated: function(id, x) { shell.showPopupFor(id, x) }
     }

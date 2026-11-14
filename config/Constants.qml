@@ -21,6 +21,10 @@ QtObject {
   // bar.iconSize (min(iconCanvas 16, icon-size 12)).
   readonly property int iconSize: 12
 
+  // Open-panel mark drawn under a bar widget while its popup is open.
+  readonly property int indicatorThickness: 2
+  readonly property int indicatorInset: 2
+
   readonly property int cellWidth: 52
   readonly property int cellHeight: 34
   readonly property int cellSpacing: 2

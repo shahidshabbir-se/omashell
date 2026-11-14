@@ -23,6 +23,10 @@ Row {
   // monitor-specific workspace block through it).
   property var screen: null
 
+  // Id of the widget whose popup is open; empty when none is. Drives the
+  // open-panel mark below, so widgets need no open/closed state of their own.
+  property string activeId: ""
+
   // centerX is local to this section; the bar maps it onto the panel.
   signal activated(string id, real centerX)
 
@@ -41,6 +45,22 @@ Row {
       height: root.height
       // An unknown id yields an empty source: status Null, so it takes no space.
       visible: loader.status === Loader.Ready
+
+      // Where this widget's open-panel mark belongs. A widget may name an item to
+      // track (an icon, rather than the slot around it) or just how wide the mark
+      // is; without a hint the mark spans the slot, which is what text wants.
+      // Same hint names Omarchy uses.
+      readonly property Item markItem: loader.item && loader.item.openPanelIndicatorItem !== undefined
+        ? loader.item.openPanelIndicatorItem
+        : null
+      readonly property real markWidth: markItem
+        ? markItem.width
+        : (loader.item && loader.item.openPanelIndicatorWidth !== undefined
+            ? loader.item.openPanelIndicatorWidth
+            : slot.width)
+      readonly property real markCenterX: markItem
+        ? markItem.mapToItem(slot, markItem.width / 2, 0).x
+        : slot.width / 2
 
       Loader {
         id: loader
@@ -68,6 +88,32 @@ Row {
 
           function onToggleRequested() {
             root.activated(slot.widgetId, slot.x + loader.x + loader.width / 2)
+          }
+        }
+      }
+
+      // Open-panel mark: a 2px accent pill on the edge facing the desktop, shown
+      // while this widget's popup is open. Text gets the full slot width; an icon
+      // reports its ink width, so the mark never looks wider than what it points
+      // at. One mark for every widget, so no widget carries hover or active
+      // styling of its own.
+      Rectangle {
+        id: indicator
+
+        visible: opacity > 0
+        opacity: root.activeId === slot.widgetId ? 0.9 : 0
+        color: Colors.accent
+        radius: Math.min(width, height) / 2
+        width: slot.markWidth
+        height: Constants.indicatorThickness
+        x: Math.floor(slot.markCenterX - width / 2)
+        y: slot.height - height - Constants.indicatorInset
+        z: 10
+
+        Behavior on opacity {
+          NumberAnimation {
+            duration: 120
+            easing.type: Easing.OutCubic
           }
         }
       }

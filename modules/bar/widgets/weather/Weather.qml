@@ -13,6 +13,10 @@ Item {
   // instead of on a line box. Measured by OpticalGlyph, not guessed.
   property real glyphSize: Constants.iconSize
 
+  // Hint for the bar's open-panel mark: underline the icon's ink, not the 21px
+  // box around it. Same property name Omarchy uses for the same purpose.
+  readonly property real openPanelIndicatorWidth: glyph.paintedWidth
+
   signal toggleRequested()
 
   Item {
@@ -27,25 +31,12 @@ Item {
       }
     }
 
-    Rectangle {
-      anchors.fill: parent
-      radius: Constants.cornerRadius
-      color: mouse.containsMouse ? Qt.rgba(Colors.foreground.r, Colors.foreground.g, Colors.foreground.b, 0.08) : "transparent"
-
-      Behavior on color {
-        ColorAnimation {
-          duration: 60
-          easing.type: Easing.InOutQuad
-        }
-      }
-    }
-
     OpticalGlyph {
+      id: glyph
       anchors.fill: parent
       text: WeatherService.glyph
       fontSize: Constants.fontBody
-      // Fit the ink to the size the glyph had before: the centring changes, not the size.
-      paintedSize: glyphSize
+      paintedSize: root.glyphSize
       color: Colors.foreground
     }
   }
@@ -53,7 +44,6 @@ Item {
   MouseArea {
     id: mouse
     anchors.fill: parent
-    hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: root.toggleRequested()
   }

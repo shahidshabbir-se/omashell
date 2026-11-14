@@ -15,6 +15,9 @@ PanelWindow {
 
   readonly property int sectionMargin: 10
 
+  // Which widget's popup is open, resolved by the shell from its popup map.
+  property string activeId: ""
+
   // Emitted for any widget that signals activation. The shell resolves the id
   // to a popup; the bar has no idea popups exist.
   signal widgetActivated(string id, real anchorX)
@@ -24,6 +27,7 @@ PanelWindow {
 
     ids: Config.bar.left
     screen: root.screen
+    activeId: root.activeId
     anchors.left: parent.left
     anchors.leftMargin: root.sectionMargin
     anchors.verticalCenter: parent.verticalCenter
@@ -38,6 +42,7 @@ PanelWindow {
 
     ids: Config.bar.center
     screen: root.screen
+    activeId: root.activeId
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
 
@@ -51,6 +56,7 @@ PanelWindow {
 
     ids: Config.bar.right
     screen: root.screen
+    activeId: root.activeId
     anchors.right: parent.right
     anchors.rightMargin: root.sectionMargin
     anchors.verticalCenter: parent.verticalCenter
