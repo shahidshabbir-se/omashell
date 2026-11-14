@@ -2,7 +2,7 @@ import QtQuick
 import qs.config
 import qs.common
 
-PopupShell {
+PanelShell {
   id: root
 
   layerNamespace: "omashell-calendar"
@@ -484,7 +484,7 @@ PopupShell {
 
   // Month switch: slide + fade the outgoing month out, swap the data while it
   // is invisible, then slide + fade the incoming month in from the other side.
-  // Declared as a property so it does not land in PopupShell's content list.
+  // Declared as a property so it does not land in PanelShell's content list.
   property SequentialAnimation monthTransition: SequentialAnimation {
 
     ParallelAnimation {

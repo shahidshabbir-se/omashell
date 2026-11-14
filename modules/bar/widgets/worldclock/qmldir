@@ -1,5 +1,5 @@
 module qs.modules.bar.widgets.worldclock
 WorldClock 1.0 WorldClock.qml
-WorldClockPopup 1.0 WorldClockPopup.qml
+WorldClockPanel 1.0 WorldClockPanel.qml
 MiniGlobe 1.0 MiniGlobe.qml
 singleton WorldClockService 1.0 WorldClockService.qml

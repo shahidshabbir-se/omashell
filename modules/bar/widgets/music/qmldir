@@ -4,7 +4,7 @@ MarqueeText 1.0 MarqueeText.qml
 MprisPlaybackSession 1.0 MprisPlaybackSession.qml
 MusicBackdrop 1.0 MusicBackdrop.qml
 MusicButton 1.0 MusicButton.qml
-MusicPopup 1.0 MusicPopup.qml
+MusicPanel 1.0 MusicPanel.qml
 NowPlayingHero 1.0 NowPlayingHero.qml
 PlaybackControls 1.0 PlaybackControls.qml
 TrackProgress 1.0 TrackProgress.qml

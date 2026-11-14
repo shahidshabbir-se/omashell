@@ -9,7 +9,7 @@ ColumnLayout {
 
     required property var playback
     required property bool entranceReady
-    required property bool popupOpen
+    required property bool panelOpen
 
     readonly property bool hasRealArtwork: root.playback.hasCurrentPlayback && root.playback.hasPlayer && !!root.playback.player && !!root.playback.player.trackArtUrl && String(root.playback.player.trackArtUrl).length > 0
 
@@ -109,7 +109,7 @@ ColumnLayout {
         to: root.discRotation + 360
         duration: root.playback.isPlaying ? 18000 : 45000
         loops: Animation.Infinite
-        running: root.popupOpen
+        running: root.panelOpen
         onStopped: root.discRotation = artworkContainer.rotation
     }
 

@@ -21,11 +21,13 @@ PanelWindow {
   WlrLayershell.namespace: root.layerNamespace
   // Interactive panels ask for the keyboard while they are open; the read-only
   // ones (clock, weather, world clock) keep taking no keys at all.
+  // Prime keyboard focus exclusively for a short mapping window. OnDemand alone
+  // does not reliably reacquire focus when an already-mapped layer is reopened.
   WlrLayershell.keyboardFocus: root.keyboard && root.opened
-    ? WlrKeyboardFocus.OnDemand
+    ? (root.focusPrimed ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
     : WlrKeyboardFocus.None
 
-  property string layerNamespace: "omashell-popup"
+  property string layerNamespace: "omashell-panel"
   property bool opened: false
   property bool keyboard: false
   // A PanelNav (or anything with takeFocus()); focused on open when keyboard.
@@ -34,6 +36,13 @@ PanelWindow {
   property int cardWidth: 340
   property int spacing: 14
   property bool reduceMotion: false
+  property bool focusPrimed: false
+
+  Timer {
+    id: focusPrime
+    interval: 75
+    onTriggered: if (root.opened) root.focusPrimed = true
+  }
 
   readonly property var easeOut: [0.23, 1.0, 0.32, 1.0, 1.0, 1.0]
   readonly property real resolvedAnchorX: anchorX >= 0 ? anchorX : width - 100
@@ -48,11 +57,17 @@ PanelWindow {
 
   function open() {
     opened = true
+    focusPrimed = false
+    focusPrime.restart()
     if (keyboard && focusTarget && focusTarget.takeFocus)
       Qt.callLater(function() { if (root.opened) root.focusTarget.takeFocus() })
   }
 
-  function close() { opened = false }
+  function close() {
+    focusPrime.stop()
+    focusPrimed = false
+    opened = false
+  }
 
   function toggle() {
     if (opened) close()
@@ -81,7 +96,7 @@ PanelWindow {
     x: Math.max(Constants.gap, Math.min(root.resolvedAnchorX - width / 2, root.width - width - Constants.gap))
     y: Constants.barHeight + Constants.gap
     width: root.cardWidth
-    height: contentColumn.implicitHeight + Constants.popupPadding * 2 + 4
+    height: contentColumn.implicitHeight + Constants.panelPadding * 2 + 4
     visible: root.opened || opacity > 0
     clip: true
     property real shown: root.opened ? 1 : 0
@@ -117,9 +132,9 @@ PanelWindow {
 
     Column {
       id: contentColumn
-      x: Constants.popupPadding + 2
-      y: Constants.popupPadding + 2
-      width: card.width - (Constants.popupPadding + 2) * 2
+      x: Constants.panelPadding + 2
+      y: Constants.panelPadding + 2
+      width: card.width - (Constants.panelPadding + 2) * 2
       spacing: root.spacing
     }
   }

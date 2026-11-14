@@ -3,7 +3,7 @@ import qs.config
 import qs.common
 import qs.modules.bar.widgets.worldclock
 
-PopupShell {
+PanelShell {
   id: root
 
   layerNamespace: "omashell-world-clock"

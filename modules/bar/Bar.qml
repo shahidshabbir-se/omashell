@@ -30,9 +30,9 @@ PanelWindow {
 
   // Set by the shell while any popup is open. A tooltip over an open panel is
   // noise - the pointer is usually passing the bar on its way into the panel.
-  property bool popupOpen: false
+  property bool panelOpen: false
 
-  onPopupOpenChanged: if (root.popupOpen) root.tooltipText = ""
+  onPanelOpenChanged: if (root.panelOpen) root.tooltipText = ""
 
   // A click on the bar that misses every icon: the shell closes the open popup.
   signal barClicked()
@@ -59,12 +59,12 @@ PanelWindow {
     anchor.rect.width: 1
     anchor.rect.height: 1
 
-    visible: root.tooltipText !== "" && !root.popupOpen
+    visible: root.tooltipText !== "" && !root.panelOpen
     color: "transparent"
     // Sized from the label, not the bubble: a plain Rectangle has no implicit
     // size from its children, and a zero-width popup is a Wayland protocol error.
-    implicitWidth: Math.ceil(tooltipLabel.implicitWidth) + 16
-    implicitHeight: Math.max(22, Math.ceil(tooltipLabel.implicitHeight) + 8)
+    implicitWidth: Math.ceil(tooltipLabel.implicitWidth) + 20
+    implicitHeight: Math.max(22, Math.ceil(tooltipLabel.implicitHeight) + 14)
 
     // Reveal one frame after the surface maps. The first configure can arrive at a
     // different scale than the bar (measured: popup dpr 2, bar 1.3333), which would
@@ -86,20 +86,21 @@ PanelWindow {
 
       anchors.fill: parent
       opacity: tooltipWindow.revealed ? 1 : 0
-      color: Colors.darkerBackground
+      color: Colors.darkBackground
       border.width: 1
       border.color: Colors.muted
       radius: Constants.cornerRadius
 
-      OpticalText {
+      Text {
         id: tooltipLabel
 
-        // Integer offsets: fractional glyph positions smear the border beside them.
-        x: Math.round((parent.width - width) / 2)
-        y: Math.round((parent.height - height) / 2)
+        anchors.centerIn: parent
         text: root.tooltipText
-        pixelSize: Constants.fontBodySmall
         color: Colors.foreground
+        font.family: Constants.fontFamily
+        font.pixelSize: Constants.fontBody
+        textFormat: Text.PlainText
+        renderType: Text.NativeRendering
       }
     }
   }

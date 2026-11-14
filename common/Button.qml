@@ -13,7 +13,7 @@ Item {
 
   signal activated()
 
-  implicitWidth: label.implicitWidth + Constants.popupPadding * 2
+  implicitWidth: label.implicitWidth + Constants.panelPadding * 2
   implicitHeight: 26
 
   function activate() {

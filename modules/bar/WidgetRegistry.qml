@@ -15,7 +15,8 @@ QtObject {
     workspaces: Qt.resolvedUrl("widgets/workspaces/Workspaces.qml"),
     clock: Qt.resolvedUrl("widgets/clock/Clock.qml"),
     weather: Qt.resolvedUrl("widgets/weather/Weather.qml"),
-    worldclock: Qt.resolvedUrl("widgets/worldclock/WorldClock.qml")
+    worldclock: Qt.resolvedUrl("widgets/worldclock/WorldClock.qml"),
+    bluetooth: Qt.resolvedUrl("widgets/bluetooth/Bluetooth.qml")
   })
 
   // Unknown id => empty url => the Loader stays empty. A typo in shell.json

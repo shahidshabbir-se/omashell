@@ -11,8 +11,9 @@ Widget {
   id: root
 
   property string glyph: ""
-  // Tints the glyph accent, for a widget reporting an on/in-use state.
-  property bool active: false
+  // The bar's foreground by default; a widget may override it, but no widget tint
+  // itself with an on/in-use state - accent stays for marks and focus rings.
+  property color color: Colors.foreground
   // Hover text; the bar hosts it (a masked layer surface cannot draw above itself).
   property string tooltip: ""
 
@@ -51,7 +52,7 @@ Widget {
       text: root.glyph
       fontSize: Constants.fontBody
       paintedSize: root.glyphSize
-      color: root.active ? Colors.accent : Colors.foreground
+      color: root.color
     }
   }
 

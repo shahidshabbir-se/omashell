@@ -8,9 +8,9 @@ Item {
 
   property string text: ""
   property bool rule: false
-  property color color: Colors.darkForeground
+  property color color: Qt.darker(Colors.foreground, 1.4)
 
-  implicitHeight: label.implicitHeight + (rule ? Constants.gap : 0)
+  implicitHeight: Math.ceil(label.implicitHeight) + (rule ? Constants.gap : 0)
 
   Text {
     id: label
@@ -19,7 +19,10 @@ Item {
     color: root.color
     font.family: Constants.fontFamily
     font.pixelSize: Constants.fontCaption
-    font.letterSpacing: 1
+    font.bold: true
+    // Glyphs overshoot their ascent in nerd fonts; a header at the top of a
+    // clipping list loses that sliver and renders beheaded. Reserve it.
+    topPadding: Math.ceil(font.pixelSize * 0.15)
     textFormat: Text.PlainText
     renderType: Text.NativeRendering
     width: parent.width

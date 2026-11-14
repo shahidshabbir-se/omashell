@@ -87,7 +87,7 @@ Item {
                 Layout.fillWidth: true
                 playback: playback
                 entranceReady: entrance.ready
-                popupOpen: root.open
+                panelOpen: root.open
             }
 
             Item {

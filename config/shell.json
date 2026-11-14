@@ -1,8 +1,16 @@
 {
   "version": 1,
   "bar": {
-    "left": ["workspaces"],
-    "center": ["clock", "weather", "worldclock"],
-    "right": []
+    "left": [
+      "workspaces"
+    ],
+    "center": [
+      "clock",
+      "weather",
+      "worldclock"
+    ],
+    "right": [
+      "bluetooth"
+    ]
   }
 }

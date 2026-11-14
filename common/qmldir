@@ -1,10 +1,12 @@
 module qs.common
-PopupShell 1.0 PopupShell.qml
+PanelShell 1.0 PanelShell.qml
 ArcText 1.0 ArcText.qml
 OpticalText 1.0 OpticalText.qml
 OpticalGlyph 1.0 OpticalGlyph.qml
 PanelHeader 1.0 PanelHeader.qml
 SectionLabel 1.0 SectionLabel.qml
+PanelSeparator 1.0 PanelSeparator.qml
+PanelToolTip 1.0 PanelToolTip.qml
 ToggleSwitch 1.0 ToggleSwitch.qml
 ValueSlider 1.0 ValueSlider.qml
 Field 1.0 Field.qml

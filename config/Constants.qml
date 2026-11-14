@@ -5,7 +5,9 @@ QtObject {
   readonly property int cornerRadius: 0
   readonly property int barHeight: 28
   readonly property int gap: 5
-  readonly property int popupPadding: 14
+  readonly property int panelPadding: 14
+  // Omarchy panel rows add the theme's rowPaddingX (12px) to their content height.
+  readonly property int deviceRowPaddingY: 12
 
   readonly property string fontFamily: "JetBrainsMono Nerd Font"
   readonly property int fontCaption: 10
@@ -21,12 +23,12 @@ QtObject {
   // bar.iconSize (min(iconCanvas 16, icon-size 12)).
   readonly property int iconSize: 12
 
-  // Open-panel mark drawn under a bar widget while its popup is open.
+  // Open-panel mark drawn under a bar widget while its panel is open.
   readonly property int indicatorThickness: 2
   readonly property int indicatorInset: 2
 
   // Hover dwell before a bar tooltip appears.
-  readonly property int tooltipDelay: 500
+  readonly property int tooltipDelay: 400
 
   // Bar rhythm, the way Omarchy does it: no gap between widgets at all, each
   // widget carries its own horizontal padding instead, so adding, removing or
