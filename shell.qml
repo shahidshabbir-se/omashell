@@ -16,6 +16,12 @@ ShellRoot {
     worldclock: worldClock
   })
 
+  function closePopups() {
+    calendar.close()
+    weather.close()
+    worldClock.close()
+  }
+
   function showPopup(target, x) {
     if (target !== calendar) calendar.close()
     if (target !== weather) weather.close()
@@ -45,8 +51,10 @@ ShellRoot {
       required property var modelData
       screen: modelData
       activeId: shell.activeWidgetId
+      popupOpen: shell.activeWidgetId !== ""
 
       onWidgetActivated: function(id, x) { shell.showPopupFor(id, x) }
+      onBarClicked: shell.closePopups()
     }
   }
 

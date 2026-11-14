@@ -30,6 +30,27 @@ QtObject {
     right: ids(source().right, defaults.bar.right)
   })
 
+  // Per-widget settings from shell.json, keyed by id. An entry may be a bare id
+  // string, or an object {"id": "clock", "format": 3} carrying that widget's own
+  // values; the bar injects the object into the widget's `settings`.
+  readonly property var widgetSettings: {
+    var out = {}
+    var src = source()
+    var sections = [src.left, src.center, src.right]
+    for (var s = 0; s < sections.length; s++) {
+      var list = sections[s]
+      if (typeof list !== "object" || list === null || typeof list.length !== "number")
+        continue
+      for (var i = 0; i < list.length; i++) {
+        var entry = list[i]
+        if (typeof entry !== "object" || entry === null || typeof entry.id !== "string" || entry.id === "")
+          continue
+        out[entry.id] = entry
+      }
+    }
+    return out
+  }
+
   function source() {
     return (raw && raw.bar) ? raw.bar : defaults.bar
   }
@@ -44,7 +65,9 @@ QtObject {
       return fallback
     var out = []
     for (var i = 0; i < list.length; i++) {
-      var id = list[i]
+      var raw = list[i]
+      // Bare "clock" and {"id": "clock", "format": 3} are both accepted.
+      var id = (typeof raw === "object" && raw !== null) ? raw.id : raw
       if (typeof id !== "string" || id === "")
         continue
       if (out.indexOf(id) !== -1)

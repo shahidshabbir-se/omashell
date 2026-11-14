@@ -31,6 +31,33 @@ Row {
   // centerX is local to this section; the bar maps it onto the panel.
   signal activated(string id, real centerX)
 
+  // Hover text for the bar's tooltip; empty when nothing is hovered.
+  signal tooltipRequested(string text, real centerX)
+
+  property Item hoverSlot: null
+
+  // Hide at once, show only after the pointer has rested: a tooltip that appears
+  // on the way past is noise.
+  Timer {
+    id: hoverTimer
+    interval: Constants.tooltipDelay
+    onTriggered: {
+      var slot = root.hoverSlot
+      if (!slot || slot.tooltipText === "") return
+      root.tooltipRequested(slot.tooltipText, slot.x + slot.width / 2)
+    }
+  }
+
+  function setHovered(slot) {
+    root.hoverSlot = slot
+    hoverTimer.stop()
+    if (!slot || slot.tooltipText === "") {
+      root.tooltipRequested("", 0)
+      return
+    }
+    hoverTimer.restart()
+  }
+
   Repeater {
     model: root.ids
 
@@ -60,6 +87,11 @@ Row {
       // track (an icon, rather than the slot around it) or just how wide the mark
       // is; without a hint the mark underlines the content, never the padding.
       // Same hint names Omarchy uses.
+      // Hover text the bar draws in its own tooltip surface.
+      readonly property string tooltipText: loader.item && loader.item.tooltip !== undefined
+        ? String(loader.item.tooltip)
+        : ""
+
       readonly property Item markItem: loader.item && loader.item.openPanelIndicatorItem !== undefined
         ? loader.item.openPanelIndicatorItem
         : null
@@ -86,11 +118,35 @@ Row {
           restoreMode: Binding.RestoreNone
         }
 
-        // Bar widgets signal activation under their own names today, so both
+        // Identity and settings, the two things the Widget base declares. Injected
+        // like `screen`, so a widget that does not declare them is untouched.
+        Binding {
+          target: loader.item
+          property: "widgetId"
+          value: slot.widgetId
+          when: loader.item !== null && loader.item.widgetId !== undefined
+          restoreMode: Binding.RestoreNone
+        }
+
+        Binding {
+          target: loader.item
+          property: "settings"
+          value: Config.widgetSettings[slot.widgetId] !== undefined
+            ? Config.widgetSettings[slot.widgetId]
+            : ({})
+          when: loader.item !== null && loader.item.settings !== undefined
+          restoreMode: Binding.RestoreNone
+        }
+
+        // Bar widgets signal activation under their own names, so all three
         // spellings are accepted. ignoreUnknownSignals keeps silent widgets quiet.
         Connections {
           target: loader.item
           ignoreUnknownSignals: true
+
+          function onActivated() {
+            root.activated(slot.widgetId, slot.x + loader.x + loader.width / 2)
+          }
 
           function onCalendarToggleRequested() {
             root.activated(slot.widgetId, slot.x + loader.x + loader.width / 2)
@@ -99,6 +155,13 @@ Row {
           function onToggleRequested() {
             root.activated(slot.widgetId, slot.x + loader.x + loader.width / 2)
           }
+        }
+      }
+
+      HoverHandler {
+        onHoveredChanged: {
+          if (hovered) root.setHovered(slot)
+          else if (root.hoverSlot === slot) root.setHovered(null)
         }
       }
 

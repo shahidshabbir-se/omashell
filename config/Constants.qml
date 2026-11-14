@@ -25,6 +25,9 @@ QtObject {
   readonly property int indicatorThickness: 2
   readonly property int indicatorInset: 2
 
+  // Hover dwell before a bar tooltip appears.
+  readonly property int tooltipDelay: 500
+
   // Bar rhythm, the way Omarchy does it: no gap between widgets at all, each
   // widget carries its own horizontal padding instead, so adding, removing or
   // reordering a widget never changes its neighbours' spacing.

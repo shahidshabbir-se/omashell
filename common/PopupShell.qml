@@ -12,6 +12,9 @@ PanelWindow {
   anchors.left: true
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
+  // Input region while open: everything except the bar strip. The bar stays
+  // clickable so another icon can take this panel over, and the bar itself closes
+  // it when the click misses an icon.
   mask: Region { item: root.opened ? blocker : null }
 
   WlrLayershell.layer: WlrLayer.Overlay
@@ -35,7 +38,9 @@ PanelWindow {
   readonly property var easeOut: [0.23, 1.0, 0.32, 1.0, 1.0, 1.0]
   readonly property real resolvedAnchorX: anchorX >= 0 ? anchorX : width - 100
 
-  default property alias content: contentColumn.children
+  // `data`, not `children`: a panel may declare non-visual children (animations,
+  // timers) at its root, and only `data` accepts those.
+  default property alias content: contentColumn.data
 
   function duration(ms) {
     return reduceMotion ? 0 : ms
@@ -56,7 +61,12 @@ PanelWindow {
 
   Item {
     id: blocker
-    anchors.fill: parent
+
+    anchors.top: parent.top
+    anchors.topMargin: Constants.barHeight
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
     visible: root.opened
 
     MouseArea {

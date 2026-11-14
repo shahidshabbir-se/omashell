@@ -2,15 +2,13 @@ import QtQuick
 import qs.common
 import qs.config
 
-// Date/time label for the bar. OpticalText centres the figures on the bar's
-// middle instead of on the line box, which would leave them slightly high.
-OpticalText {
+// Date/time label for the bar. Identity comes from the Widget base (so
+// shell.json can seed a format), the glyph centring from OpticalText, and the
+// right-click format cycling stays here because it is this widget's behaviour.
+Widget {
   id: root
 
   signal calendarToggleRequested()
-
-  pixelSize: Constants.fontBody
-  color: Colors.foreground
 
   property var formats: [
     "dddd HH:mm",
@@ -25,8 +23,12 @@ OpticalText {
     "yyyy-MM-dd HH:mm"
   ]
 
-  property int formatIndex: 0
+  // Seeded from shell.json ({"id": "clock", "format": 3}); right click cycles it.
+  property int formatIndex: setting("format", 0)
   property var currentDate: new Date()
+
+  implicitWidth: label.implicitWidth
+  implicitHeight: label.implicitHeight
 
   function isoWeekNumber(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
@@ -37,11 +39,18 @@ OpticalText {
     return week < 10 ? "0" + week : String(week)
   }
 
-  text: formatIndex === 8
-    ? Qt.formatDateTime(currentDate, "d MMMM")
-      + " W" + isoWeekNumber(currentDate)
-      + " " + Qt.formatDateTime(currentDate, "yyyy")
-    : Qt.formatDateTime(currentDate, formats[formatIndex])
+  OpticalText {
+    id: label
+
+    anchors.centerIn: parent
+    text: root.formatIndex === 8
+      ? Qt.formatDateTime(root.currentDate, "d MMMM")
+        + " W" + root.isoWeekNumber(root.currentDate)
+        + " " + Qt.formatDateTime(root.currentDate, "yyyy")
+      : Qt.formatDateTime(root.currentDate, root.formats[root.formatIndex])
+    pixelSize: Constants.fontBody
+    color: Colors.foreground
+  }
 
   Timer {
     interval: 1000
