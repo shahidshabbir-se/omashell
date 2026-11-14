@@ -1,7 +1,0 @@
-module qs.modules.bar.network
-singleton NetworkRuntime 1.0 NetworkRuntime.qml
-Network 1.0 Network.qml
-NetworkPopup 1.0 NetworkPopup.qml
-WifiQrOverlay 1.0 WifiQrOverlay.qml
-SpeedTestOverlay 1.0 SpeedTestOverlay.qml
-

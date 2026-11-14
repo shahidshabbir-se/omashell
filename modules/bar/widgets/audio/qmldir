@@ -1,5 +1,0 @@
-module qs.modules.bar.audio
-Panel 1.0 Panel.qml
-AudioButton 1.0 AudioButton.qml
-AudioRuntime 1.0 AudioRuntime.qml
-VolumeSlider 1.0 VolumeSlider.qml
