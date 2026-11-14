@@ -1,0 +1,4 @@
+module qs.modules.bar.bluetooth
+singleton BluetoothRuntime 1.0 BluetoothRuntime.qml
+BluetoothButton 1.0 BluetoothButton.qml
+BluetoothPopup 1.0 BluetoothPopup.qml
