@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import qs.common
 import qs.config
 
 Item {
@@ -354,16 +355,33 @@ Item {
         height: Constants.barHeight
         opacity: occupied || shown ? 1 : 0.5
 
-        Text {
+        // A digit is text, so it goes through the figure-centred label. The active
+        // workspace shows a layout glyph instead, and a glyph has no figure metrics:
+        // it is fitted to the bar's icon size so every mode reads the same size.
+        OpticalText {
           id: label
+          visible: !workspaceButton.shown
           anchors.centerIn: parent
-          text: workspaceButton.shown
-            ? root.modeGlyph(root.activeMode)
-            : (workspaceButton.slot === root.slots ? "0" : String(workspaceButton.slot))
-          textFormat: Text.PlainText
+          text: workspaceButton.slot === root.slots ? "0" : String(workspaceButton.slot)
           color: Colors.foreground
-          font.family: Constants.fontFamily
-          font.pixelSize: Constants.fontBody
+          pixelSize: Constants.fontBody
+          scale: mouse.pressed ? 0.9 : 1
+
+          Behavior on scale {
+            NumberAnimation {
+              duration: 80
+              easing.type: Easing.InOutQuad
+            }
+          }
+        }
+
+        OpticalGlyph {
+          visible: workspaceButton.shown
+          anchors.fill: parent
+          text: root.modeGlyph(root.activeMode)
+          fontSize: Constants.fontBody
+          paintedSize: Constants.iconSize
+          color: Colors.foreground
           scale: mouse.pressed ? 0.9 : 1
 
           Behavior on scale {

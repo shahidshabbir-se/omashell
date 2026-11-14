@@ -1,3 +1,5 @@
 module qs.common
 PopupShell 1.0 PopupShell.qml
 ArcText 1.0 ArcText.qml
+OpticalText 1.0 OpticalText.qml
+OpticalGlyph 1.0 OpticalGlyph.qml

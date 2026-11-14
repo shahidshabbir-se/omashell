@@ -1,4 +1,5 @@
 import QtQuick
+import qs.common
 import qs.config
 import qs.modules.bar.widgets.weather
 
@@ -7,6 +8,10 @@ Item {
 
   implicitWidth: 21
   implicitHeight: 21
+
+  // Ink height the glyph is fitted to, so its outline sits on the slot's centre
+  // instead of on a line box. Measured by OpticalGlyph, not guessed.
+  property real glyphSize: Constants.iconSize
 
   signal toggleRequested()
 
@@ -35,13 +40,13 @@ Item {
       }
     }
 
-    Text {
-      anchors.centerIn: parent
+    OpticalGlyph {
+      anchors.fill: parent
       text: WeatherService.glyph
-      textFormat: Text.PlainText
+      fontSize: Constants.fontBody
+      // Fit the ink to the size the glyph had before: the centring changes, not the size.
+      paintedSize: glyphSize
       color: Colors.foreground
-      font.family: Constants.fontFamily
-      font.pixelSize: 13
     }
   }
 

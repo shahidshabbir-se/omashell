@@ -1,13 +1,15 @@
 import QtQuick
+import qs.common
 import qs.config
 
-Text {
+// Date/time label for the bar. OpticalText centres the figures on the bar's
+// middle instead of on the line box, which would leave them slightly high.
+OpticalText {
   id: root
 
   signal calendarToggleRequested()
 
-  font.family: Constants.fontFamily
-  font.pixelSize: Constants.fontBody
+  pixelSize: Constants.fontBody
   color: Colors.foreground
 
   property var formats: [
