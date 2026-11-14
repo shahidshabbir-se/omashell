@@ -16,6 +16,10 @@ Item {
   // box around it. Same property name Omarchy uses for the same purpose.
   readonly property real openPanelIndicatorWidth: glyph.paintedWidth
 
+  // Icon-only widgets take the bar's icon slot instead of content + padding, which
+  // leaves 7.5px of air around the 12px ink, the way Omarchy's icon buttons sit.
+  readonly property real barSlotWidth: Constants.iconSlot
+
   signal toggleRequested()
 
   Item {

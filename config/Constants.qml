@@ -25,6 +25,16 @@ QtObject {
   readonly property int indicatorThickness: 2
   readonly property int indicatorInset: 2
 
+  // Bar rhythm, the way Omarchy does it: no gap between widgets at all, each
+  // widget carries its own horizontal padding instead, so adding, removing or
+  // reordering a widget never changes its neighbours' spacing.
+  readonly property real barWidgetPadding: 8.5
+  // Slot width of an icon-only widget (canvases 21, ink 12): leaves 7.5px of air
+  // on either side, which is what a text widget's 8.5 padding looks like next to it.
+  readonly property int iconSlot: 27
+  // Distance from the screen edge to the first widget.
+  readonly property int barSectionMargin: 8
+
   readonly property int cellWidth: 52
   readonly property int cellHeight: 34
   readonly property int cellSpacing: 2

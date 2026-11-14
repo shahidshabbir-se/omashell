@@ -322,6 +322,10 @@ Item {
     function onRawEvent(event) { root.refreshSoon() }
   }
 
+  // Its grid spaces its own buttons, so padding around it would only read as a gap
+  // before the next widget. Omarchy's workspaces widget is padded the same way: not.
+  readonly property real barSlotWidth: root.implicitWidth
+
   implicitWidth: grid.implicitWidth + 1.5
   implicitHeight: grid.implicitHeight
 

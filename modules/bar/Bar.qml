@@ -13,7 +13,8 @@ PanelWindow {
   implicitHeight: Constants.barHeight
   color: Colors.background
 
-  readonly property int sectionMargin: 10
+  // Distance from the screen edge to the first widget, same token the sections use.
+  readonly property int sectionMargin: Constants.barSectionMargin
 
   // Which widget's popup is open, resolved by the shell from its popup map.
   property string activeId: ""

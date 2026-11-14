@@ -8,8 +8,9 @@ import qs.modules.bar
 Row {
   id: root
 
-  // Matches the previous hard-coded bar layout (Row spacing 14, margin 10 in Bar).
-  spacing: 14
+  // No gap between widgets: each slot carries its own padding (see slotWidth), which
+  // is how Omarchy spaces the bar. Row spacing adds to that and is therefore 0.
+  spacing: 0
 
   // Fixed bar height. A Row top-aligns its children, and widgets have different
   // heights (Clock is 12pt text, Weather and WorldClock are 21px icons), so each
@@ -41,14 +42,23 @@ Row {
       // Same width as the widget, full bar height. The Loader anchors to this
       // slot rather than to the Row: anchoring a child of a positioner is
       // undefined behaviour, anchoring to a plain Item is not.
-      width: loader.implicitWidth
+      readonly property real contentWidth: loader.implicitWidth
+      // A widget's footprint includes its own horizontal padding, so the air around
+      // it belongs to it rather than to the list. Icon widgets ask for a wider slot
+      // (Constants.iconSlot) and composite widgets can opt out by declaring their
+      // own barSlotWidth.
+      readonly property real slotWidth: loader.item && loader.item.barSlotWidth !== undefined
+        ? loader.item.barSlotWidth
+        : slot.contentWidth + Constants.barWidgetPadding * 2
+
+      width: slotWidth
       height: root.height
       // An unknown id yields an empty source: status Null, so it takes no space.
       visible: loader.status === Loader.Ready
 
       // Where this widget's open-panel mark belongs. A widget may name an item to
       // track (an icon, rather than the slot around it) or just how wide the mark
-      // is; without a hint the mark spans the slot, which is what text wants.
+      // is; without a hint the mark underlines the content, never the padding.
       // Same hint names Omarchy uses.
       readonly property Item markItem: loader.item && loader.item.openPanelIndicatorItem !== undefined
         ? loader.item.openPanelIndicatorItem
@@ -57,7 +67,7 @@ Row {
         ? markItem.width
         : (loader.item && loader.item.openPanelIndicatorWidth !== undefined
             ? loader.item.openPanelIndicatorWidth
-            : slot.width)
+            : slot.contentWidth)
       readonly property real markCenterX: markItem
         ? markItem.mapToItem(slot, markItem.width / 2, 0).x
         : slot.width / 2
@@ -66,7 +76,7 @@ Row {
         id: loader
 
         source: WidgetRegistry.urlFor(slot.widgetId)
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.centerIn: parent
 
         Binding {
           target: loader.item
