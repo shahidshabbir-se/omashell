@@ -14,6 +14,9 @@ PopupShell {
   readonly property string todayKey: dateKey(today.getFullYear(), today.getMonth(), today.getDate())
   property int viewYear: today.getFullYear()
   property int viewMonth: today.getMonth()
+  property int pendingMonthOffset: 0
+  property int monthTransitionDirection: 1
+  readonly property int monthSlideDistance: 22
   readonly property bool viewingCurrentMonth: viewYear === today.getFullYear() && viewMonth === today.getMonth()
   readonly property date viewDate: new Date(viewYear, viewMonth, 1, 12)
   readonly property var weeks: monthGrid(viewYear, viewMonth, todayKey)
@@ -35,7 +38,10 @@ PopupShell {
   function refresh() {
     now = new Date()
     today = now
-    goToToday()
+    // Snap rather than animate: the popup is just opening and would
+    // otherwise play the month transition while it fades in.
+    viewYear = today.getFullYear()
+    viewMonth = today.getMonth()
   }
 
   function pad2(value) {
@@ -105,14 +111,25 @@ PopupShell {
   }
 
   function stepMonth(delta) {
-    var target = new Date(Date.UTC(viewYear, viewMonth + delta, 1))
-    viewYear = target.getUTCFullYear()
-    viewMonth = target.getUTCMonth()
+    beginMonthTransition(delta)
+  }
+
+  function beginMonthTransition(delta) {
+    if (delta === 0 || monthTransition.running) return
+    pendingMonthOffset = delta
+    monthTransitionDirection = delta < 0 ? -1 : 1
+    monthTransition.start()
   }
 
   function goToToday() {
-    viewYear = today.getFullYear()
-    viewMonth = today.getMonth()
+    var delta = (today.getFullYear() - viewYear) * 12 + (today.getMonth() - viewMonth)
+    if (delta === 0) return
+    if (!opened) {
+      viewYear = today.getFullYear()
+      viewMonth = today.getMonth()
+      return
+    }
+    beginMonthTransition(delta)
   }
 
   property Timer midnightTimer: Timer {
@@ -233,8 +250,14 @@ PopupShell {
   }
 
   Item {
+    id: gridArea
+    opacity: 1
     width: parent.width
     height: gridColumn.y + gridColumn.height
+
+    transform: Translate {
+      id: gridShift
+    }
 
     WheelHandler {
       onWheel: function(event) {
@@ -372,6 +395,10 @@ PopupShell {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         width: 130
+        opacity: 1
+        transform: Translate {
+          id: monthLabelShift
+        }
         horizontalAlignment: Text.AlignHCenter
         text: root.monthYearLabel
         textFormat: Text.PlainText
@@ -451,6 +478,90 @@ PopupShell {
           cursorShape: Qt.PointingHandCursor
           onClicked: root.stepMonth(1)
         }
+      }
+    }
+  }
+
+  // Month switch: slide + fade the outgoing month out, swap the data while it
+  // is invisible, then slide + fade the incoming month in from the other side.
+  // Declared as a property so it does not land in PopupShell's content list.
+  property SequentialAnimation monthTransition: SequentialAnimation {
+
+    ParallelAnimation {
+      NumberAnimation {
+        target: monthLabelShift
+        property: "x"
+        to: -root.monthTransitionDirection * root.monthSlideDistance
+        duration: root.duration(120)
+        easing.type: Easing.InCubic
+      }
+
+      NumberAnimation {
+        target: gridShift
+        property: "x"
+        to: -root.monthTransitionDirection * root.monthSlideDistance
+        duration: root.duration(120)
+        easing.type: Easing.InCubic
+      }
+
+      NumberAnimation {
+        target: monthLabel
+        property: "opacity"
+        to: 0
+        duration: root.duration(120)
+        easing.type: Easing.InCubic
+      }
+
+      NumberAnimation {
+        target: gridArea
+        property: "opacity"
+        to: 0
+        duration: root.duration(120)
+        easing.type: Easing.InCubic
+      }
+    }
+
+    ScriptAction {
+      script: {
+        var target = new Date(Date.UTC(root.viewYear, root.viewMonth + root.pendingMonthOffset, 1))
+        root.viewYear = target.getUTCFullYear()
+        root.viewMonth = target.getUTCMonth()
+        monthLabelShift.x = root.monthTransitionDirection * root.monthSlideDistance
+        gridShift.x = root.monthTransitionDirection * root.monthSlideDistance
+      }
+    }
+
+    ParallelAnimation {
+      NumberAnimation {
+        target: monthLabelShift
+        property: "x"
+        to: 0
+        duration: root.duration(180)
+        easing.type: Easing.OutCubic
+      }
+
+      NumberAnimation {
+        target: gridShift
+        property: "x"
+        to: 0
+        duration: root.duration(180)
+        easing.type: Easing.OutCubic
+      }
+
+      NumberAnimation {
+        target: monthLabel
+        property: "opacity"
+        to: 1
+        duration: root.duration(180)
+        easing.type: Easing.OutCubic
+      }
+
+      NumberAnimation {
+        target: gridArea
+        property: "opacity"
+        to: 1
+        duration: root.duration(180)
+        easing.type: Easing.OutCubic
       }
     }
   }
