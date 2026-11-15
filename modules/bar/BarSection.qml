@@ -69,14 +69,15 @@ Row {
                                                                                     
                                                                                   
                           
-      readonly property real slotWidth: loader.item && loader.item.barSlotWidth !== undefined
+      readonly property bool available: !loader.item || loader.item.available === undefined || loader.item.available
+      readonly property real slotWidth: !slot.available ? 0 : loader.item && loader.item.barSlotWidth !== undefined
         ? loader.item.barSlotWidth
         : slot.contentWidth + Constants.barWidgetPadding * 2
 
       width: slotWidth
       height: root.height
                                                                                  
-      visible: loader.status === Loader.Ready
+      visible: loader.status === Loader.Ready && slot.available
 
                                                                                   
                                                                                   

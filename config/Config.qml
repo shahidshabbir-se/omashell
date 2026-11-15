@@ -13,7 +13,7 @@ QtObject {
     bar: {
       left: ["workspaces"],
       center: ["clock", "worldclock", "weather"],
-      right: []
+      right: ["bluetooth", "network", "power"]
     }
   })
 

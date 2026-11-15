@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict')
+const { batteryIcon, chargeThresholdActive } = require('./PowerModel.js')
+
+assert.equal(batteryIcon(0.5, true, false, false), '󰁿')
+assert.equal(batteryIcon(0.5, false, false, false), '󰂉')
+assert.equal(batteryIcon(0.5, false, false, true), '󰁿')
+assert.equal(batteryIcon(1, false, true, false), '󰂅')
+assert.equal(batteryIcon(0, true, false, false), '󰁺')
+assert.equal(batteryIcon(1, true, false, false), '󰁹')
+assert.equal(batteryIcon(NaN, true, false, false), '󰁺')
+const states = { Charging: 1, Discharging: 2, FullyCharged: 4, PendingCharge: 5 }
+assert.equal(chargeThresholdActive(0.98, false, states.FullyCharged, 0, 0, 100, states), false)
+assert.equal(chargeThresholdActive(0.8, false, states.FullyCharged, 0, 0, 80, states), true)
+assert.equal(chargeThresholdActive(0.8, true, states.FullyCharged, 0, 0, 80, states), false)
+assert.equal(chargeThresholdActive(0.8, false, states.Charging, 10, 3600, 80, states), false)
+assert.equal(chargeThresholdActive(0.8, false, states.Charging, 0, 0, 80, states), true)
+assert.equal(chargeThresholdActive(0.98, false, states.FullyCharged, 0, 0, null, states), false)
+console.log('Power icon tests passed')

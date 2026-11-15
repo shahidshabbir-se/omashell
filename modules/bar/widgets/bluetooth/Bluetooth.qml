@@ -26,7 +26,7 @@ IconWidget {
     : (!root.adapter.enabled ? "\uDB80\uDCB2"
       : (root.connectedCount > 0 ? "\uDB80\uDCB1" : "\uDB80\uDCAF"))
 
-  tooltip: root.adapter === null ? ""
+  tooltip: !root.setting("showTooltip", false) || root.adapter === null ? ""
     : (!root.adapter.enabled ? "Bluetooth off"
       : (root.connectedCount > 0
         ? root.connectedCount + (root.connectedCount === 1 ? " device connected" : " devices connected")

@@ -6,6 +6,7 @@ import qs.modules.bar.widgets.weather
 import qs.modules.bar.widgets.worldclock
 import qs.modules.bar.widgets.bluetooth
 import qs.modules.bar.widgets.network
+import qs.modules.bar.widgets.power
 import qs.modules.visualizer
 import qs.config
 
@@ -19,7 +20,8 @@ ShellRoot {
     weather: weatherPanel,
     worldclock: worldClockPanel,
     bluetooth: bluetoothPanel,
-    network: networkPanel
+    network: networkPanel,
+    power: powerPanel
   })
 
   function closeOverlays() {
@@ -34,15 +36,18 @@ ShellRoot {
     worldClockPanel.close()
     bluetoothPanel.close()
     networkPanel.close()
+    powerPanel.close()
   }
 
   function showPanel(target, x) {
+    if (target === powerPanel && !PowerService.present) return
     closeOverlays()
     if (target !== calendarPanel) calendarPanel.close()
     if (target !== weatherPanel) weatherPanel.close()
     if (target !== worldClockPanel) worldClockPanel.close()
     if (target !== bluetoothPanel) bluetoothPanel.close()
     if (target !== networkPanel) networkPanel.close()
+    if (target !== powerPanel) powerPanel.close()
     target.anchorX = x
     target.toggle()
   }
@@ -57,9 +62,9 @@ ShellRoot {
     var configured = Config.bar.left.concat(Config.bar.center).concat(Config.bar.right)
     var ids = []
     for (var i = 0; i < configured.length; i++)
-      if (panelFor[configured[i]] && ids.indexOf(configured[i]) < 0) ids.push(configured[i])
+      if (panelFor[configured[i]] && (configured[i] !== "power" || PowerService.present) && ids.indexOf(configured[i]) < 0) ids.push(configured[i])
     for (var key in panelFor)
-      if (ids.indexOf(key) < 0) ids.push(key)
+      if ((key !== "power" || PowerService.present) && ids.indexOf(key) < 0) ids.push(key)
     if (ids.length < 2) return
     var index = ids.indexOf(id)
     if (index < 0) return
@@ -102,6 +107,10 @@ ShellRoot {
     onShareRequested: function(payload) { wifiSharePanel.open(payload) }
     onSpeedTestRequested: function(payload) { speedTestPanel.open(payload) }
   }
+  PowerPanel {
+    id: powerPanel
+    onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("power", direction) }
+  }
   WifiSharePanel { id: wifiSharePanel }
   SpeedTestPanel { id: speedTestPanel }
   Visualizer {}
@@ -114,6 +123,8 @@ ShellRoot {
     function toggleWorldClock(): void { shell.showPanel(worldClockPanel, -1) }
     function toggleBluetooth(): void { shell.showPanel(bluetoothPanel, -1) }
     function toggleNetwork(): void { shell.showPanel(networkPanel, -1) }
+    function togglePower(): void { shell.showPanel(powerPanel, -1) }
+    function toggleBatteryPercentage(): void { PowerService.togglePercentage() }
     function toggleWifiShare(): void {
       if (wifiSharePanel.opened) wifiSharePanel.close()
       else wifiSharePanel.open("{}")

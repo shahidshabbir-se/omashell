@@ -17,7 +17,8 @@ QtObject {
     weather: Qt.resolvedUrl("widgets/weather/Weather.qml"),
     worldclock: Qt.resolvedUrl("widgets/worldclock/WorldClock.qml"),
     bluetooth: Qt.resolvedUrl("widgets/bluetooth/Bluetooth.qml"),
-    network: Qt.resolvedUrl("widgets/network/Network.qml")
+    network: Qt.resolvedUrl("widgets/network/Network.qml"),
+    power: Qt.resolvedUrl("widgets/power/Power.qml")
   })
 
                                                                             

@@ -1,0 +1,5 @@
+module qs.modules.bar.widgets.power
+singleton PowerService 1.0 PowerService.qml
+Power 1.0 Power.qml
+PowerPanel 1.0 PowerPanel.qml
+ProfileButton 1.0 ProfileButton.qml

@@ -45,6 +45,7 @@ IconWidget {
   color: root.restricted ? Colors.red : Colors.foreground
 
   tooltip: {
+    if (!root.setting("showTooltip", false)) return ""
     if (root.kind === "ethernet") return root.restricted ? "Ethernet · limited access" : "Ethernet"
     if (root.kind === "wifi") {
       var name = root.connectedWifi && root.connectedWifi.name
