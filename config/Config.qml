@@ -11,9 +11,9 @@ QtObject {
   readonly property var defaults: ({
     version: 1,
     bar: {
-      left: ["workspaces"],
+      left: ["logo", "workspaces"],
       center: ["clock", "worldclock", "weather"],
-      right: ["bluetooth", "network", "power"]
+      right: ["bluetooth", "network", "audio", "power"]
     }
   })
 

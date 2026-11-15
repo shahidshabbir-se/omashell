@@ -6,6 +6,7 @@ import qs.modules.bar.widgets.weather
 import qs.modules.bar.widgets.worldclock
 import qs.modules.bar.widgets.bluetooth
 import qs.modules.bar.widgets.network
+import qs.modules.bar.widgets.audio
 import qs.modules.bar.widgets.power
 import qs.modules.visualizer
 import qs.config
@@ -21,6 +22,7 @@ ShellRoot {
     worldclock: worldClockPanel,
     bluetooth: bluetoothPanel,
     network: networkPanel,
+    audio: audioPanel,
     power: powerPanel
   })
 
@@ -36,6 +38,7 @@ ShellRoot {
     worldClockPanel.close()
     bluetoothPanel.close()
     networkPanel.close()
+    audioPanel.close()
     powerPanel.close()
   }
 
@@ -47,6 +50,7 @@ ShellRoot {
     if (target !== worldClockPanel) worldClockPanel.close()
     if (target !== bluetoothPanel) bluetoothPanel.close()
     if (target !== networkPanel) networkPanel.close()
+    if (target !== audioPanel) audioPanel.close()
     if (target !== powerPanel) powerPanel.close()
     target.anchorX = x
     target.toggle()
@@ -107,6 +111,10 @@ ShellRoot {
     onShareRequested: function(payload) { wifiSharePanel.open(payload) }
     onSpeedTestRequested: function(payload) { speedTestPanel.open(payload) }
   }
+  AudioPanel {
+    id: audioPanel
+    onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("audio", direction) }
+  }
   PowerPanel {
     id: powerPanel
     onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("power", direction) }
@@ -123,6 +131,7 @@ ShellRoot {
     function toggleWorldClock(): void { shell.showPanel(worldClockPanel, -1) }
     function toggleBluetooth(): void { shell.showPanel(bluetoothPanel, -1) }
     function toggleNetwork(): void { shell.showPanel(networkPanel, -1) }
+    function toggleAudio(): void { shell.showPanel(audioPanel, -1) }
     function togglePower(): void { shell.showPanel(powerPanel, -1) }
     function toggleBatteryPercentage(): void { PowerService.togglePercentage() }
     function toggleWifiShare(): void {

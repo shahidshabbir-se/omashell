@@ -1,0 +1,7 @@
+module qs.modules.bar.widgets.audio
+singleton AudioService 1.0 AudioService.qml
+Audio 1.0 Audio.qml
+AudioPanel 1.0 AudioPanel.qml
+AudioSlider 1.0 AudioSlider.qml
+DeviceRow 1.0 DeviceRow.qml
+StreamRow 1.0 StreamRow.qml

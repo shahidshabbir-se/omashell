@@ -2,6 +2,7 @@
   "version": 1,
   "bar": {
     "left": [
+      "logo",
       "workspaces"
     ],
     "center": [
@@ -12,6 +13,7 @@
     "right": [
       "bluetooth",
       "network",
+      "audio",
       "power"
     ]
   }
