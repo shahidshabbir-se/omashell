@@ -100,7 +100,7 @@ Item {
       width: parent.width
       visible: text !== ""
       text: root.status
-      color: Colors.darkForeground
+      color: Colors.foreground
       font.family: Constants.fontFamily
       font.pixelSize: Constants.fontCaption
       textFormat: Text.PlainText
