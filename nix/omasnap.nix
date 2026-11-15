@@ -13,6 +13,7 @@
   wl-clipboard,
   xdg-utils,
   systemd,
+  python3,
   src,
 }:
 
@@ -25,6 +26,7 @@ stdenv.mkDerivation {
     cmake
     pkg-config
     wayland-scanner
+    python3
     qt6.wrapQtAppsHook
   ];
 
@@ -40,6 +42,7 @@ stdenv.mkDerivation {
   postPatch = ''
     substituteInPlace CMakeLists.txt \
       --replace-fail "/usr/share/wayland-protocols" "${wayland-protocols}/share/wayland-protocols"
+    ${python3}/bin/python3 ${../scripts/patch-omasnap-optional-notifier.py} src/capture.cpp
   '';
 
   cmakeFlags = [ "-DOMASNAP_VERSION=1.26.2" ];

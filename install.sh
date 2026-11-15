@@ -115,6 +115,7 @@ build_omasnap() {
   mkdir -p "$work/source"
   curl -fsSL "https://github.com/omacom/omasnap/archive/refs/tags/$version.tar.gz" \
     | tar -xz --strip-components=1 -C "$work/source"
+  python3 "$here/scripts/patch-omasnap-optional-notifier.py" "$work/source/src/capture.cpp"
   cmake -S "$work/source" -B "$work/build" -DCMAKE_BUILD_TYPE=Release -DOMASNAP_VERSION="${version#v}"
   jobs=${BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN)}
   cmake --build "$work/build" --target omasnap --parallel "$jobs"
