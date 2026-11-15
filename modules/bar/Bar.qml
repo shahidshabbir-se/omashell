@@ -172,7 +172,7 @@ PanelWindow {
     ids: Config.bar.center
     screen: root.screen
     activeId: root.activeId
-    anchors.horizontalCenter: parent.horizontalCenter
+    x: Math.round(parent.width / 2 - clockCenter)
     anchors.verticalCenter: parent.verticalCenter
 
     onActivated: function(id, x) {

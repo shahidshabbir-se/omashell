@@ -6,18 +6,80 @@ import Quickshell.Io
 QtObject {
   id: root
 
-  property string homeCity: "Karachi"
-  property string homeZone: "Asia/Karachi"
+  property string homeCity: ""
+  property string homeZone: ""
+  property var homePlace: null
+  property var homeLocation: null
+  property var cities: []
+  property bool settingsReady: false
+  property bool savePending: false
+  readonly property string settingsScript: String(Qt.resolvedUrl("state.py")).replace("file://", "")
 
-  readonly property var cities: [
-    { label: homeCity, zone: homeZone },
-    { label: "Los Angeles", zone: "America/Los_Angeles" },
-    { label: "Paris", zone: "Europe/Paris" },
-    { label: "Tokyo", zone: "Asia/Tokyo" },
-    { label: "New York", zone: "America/New_York" },
-    { label: "Sydney", zone: "Australia/Sydney" }
-  ]
+  function loadSettings() {
+    if (!settingsLoad.running && !settingsSave.running) settingsLoad.running = true
+  }
+  function saveSettings() {
+    if (!settingsReady) return
+    if (settingsSave.running) { savePending = true; return }
+    settingsSave.command = ["python3", settingsScript, "save", JSON.stringify({ cities: cities, here: homePlace })]
+    settingsSave.running = true
+  }
+  function addCity(city) {
+    if (!city || !city.zone || !city.label) return
+    for (var i = 0; i < cities.length; i++)
+      if (cities[i].zone === city.zone && cities[i].label.toLowerCase() === city.label.toLowerCase()) return
+    cities = cities.concat([city])
+    refreshOffsets()
+    saveSettings()
+  }
+  function setPeople(index, names) {
+    if (index < 0 || index >= cities.length) return
+    var next = cities.slice()
+    var city = Object.assign({}, next[index])
+    city.people = names.split(",").map(function(name) { return name.trim() }).filter(function(name) { return name.length > 0 }).slice(0, 20)
+    next[index] = city
+    cities = next
+    saveSettings()
+  }
+  function removeCity(index) {
+    if (cities.length <= 1 || index < 0 || index >= cities.length) return
+    var next = cities.slice(); next.splice(index, 1); cities = next
+    refreshOffsets()
+    saveSettings()
+  }
+  function setHome(city) {
+    if (!city || city.zone !== homeZone) return
+    homePlace = city
+    homeLocation = city
+    homeCity = city.label
+    saveSettings()
+  }
+  property Process settingsLoad: Process {
+    command: ["python3", root.settingsScript, "load"]
+    stdout: StdioCollector { onStreamFinished: {
+      try {
+        var data = JSON.parse(text)
+        root.homeZone = data.home.zone
+        root.homeCity = data.home.label
+        root.homePlace = data.here || null
+        root.homeLocation = data.home
+        root.cities = data.cities
+        root.settingsReady = true
+        root.refreshOffsets()
+        if (data.firstRun) root.saveSettings()
+      } catch (e) { console.warn("World clock settings:", e) }
+    } }
+    stderr: StdioCollector { onStreamFinished: if (text.trim()) console.warn(String(text).trim()) }
+  }
+  property Process settingsSave: Process {
+    stderr: StdioCollector { onStreamFinished: if (text.trim()) console.warn(String(text).trim()) }
+    onExited: function(code) {
+      if (code !== 0) console.warn("World clock settings could not be saved")
+      if (root.savePending) { root.savePending = false; root.saveSettings() }
+    }
+  }
 
+  property bool offsetsPending: false
   property var offsets: ({})
   property var abbrs: ({})
   property int localOffsetMinutes: -new Date().getTimezoneOffset()
@@ -27,7 +89,7 @@ QtObject {
   readonly property var monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
   readonly property string localTime: timeAt(localOffsetMinutes)
-  readonly property string caption: "It's " + localTime + " here in " + homeCity
+  readonly property string caption: homeCity ? "It's " + localTime + " here in " + homeCity : "It's " + localTime + " here"
 
   readonly property var rows: {
     var out = []
@@ -37,6 +99,7 @@ QtObject {
         zone: cities[i].zone,
         offset: offsets[cities[i].zone],
         abbr: abbrs[cities[i].zone] || "",
+        people: Array.isArray(cities[i].people) ? cities[i].people : [],
         home: cities[i].zone === homeZone
       })
     }
@@ -58,7 +121,8 @@ QtObject {
   function timeAt(offset) {
     if (offset === undefined || offset === null) return "--:--"
     var d = new Date(nowMs + offset * 60000)
-    return pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes())
+    var hour = d.getUTCHours()
+    return (hour % 12 || 12) + ":" + pad2(d.getUTCMinutes()) + (hour < 12 ? " AM" : " PM")
   }
 
   function dateAt(offset) {
@@ -128,7 +192,7 @@ QtObject {
   }
 
   function refreshOffsets() {
-    if (probe.running) return
+    if (probe.running) { offsetsPending = true; return }
 
     var ids = []
     for (var i = 0; i < cities.length; i++) ids.push(cities[i].zone)
@@ -143,6 +207,9 @@ QtObject {
 
   property Process probe: Process {
     id: probe
+    onExited: {
+      if (root.offsetsPending) { root.offsetsPending = false; Qt.callLater(root.refreshOffsets) }
+    }
 
     stdout: StdioCollector {
       waitForEnd: true
@@ -188,5 +255,5 @@ QtObject {
     onTriggered: root.refreshOffsets()
   }
 
-  Component.onCompleted: root.refreshOffsets()
+  Component.onCompleted: root.loadSettings()
 }

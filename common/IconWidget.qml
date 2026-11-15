@@ -27,7 +27,8 @@ Widget {
                                                                                   
   readonly property real openPanelIndicatorWidth: glyphItem.paintedWidth
                                                                   
-  readonly property real barSlotWidth: Constants.iconSlot
+  property real slotWidth: Constants.iconSlot
+  readonly property real barSlotWidth: slotWidth
 
   implicitWidth: canvas
   implicitHeight: canvas
