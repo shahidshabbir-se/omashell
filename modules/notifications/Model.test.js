@@ -30,6 +30,19 @@ assert.deepEqual(row.actions, [{ id: 'open', text: 'Open' }])
 assert.equal(row.time, 1000)
 assert.equal(m.snapshot({}, 5).urgency, 1)
 assert.equal(m.snapshot(null, 6).summary, '')
+assert.equal(m.safeImage('/tmp/shot.png'), 'file:///tmp/shot.png')
+assert.equal(m.safeImage('/proc/self/environ'), '')
+assert.equal(m.safeImage('/run/user/1000/omasnap/shot.png'), 'file:///run/user/1000/omasnap/shot.png')
+assert.equal(m.safeImage('/run/secrets/token.png'), '')
+assert.equal(m.safeImage('/tmp/../secret'), '')
+assert.deepEqual(m.codes('Verification code', 'Your code is 482913'), ['482913'])
+assert.deepEqual(m.codes('Build complete', '482913'), [])
+assert.deepEqual(m.execActions([{label: 'Open', argv: ['xdg-open', 'file:///tmp/a.png']}]), [
+  {label: 'Open', argv: ['xdg-open', 'file:///tmp/a.png']}
+])
+assert.deepEqual(m.execActions([{label: 'Bad', argv: ['-rf', '/']}]), [])
+assert.deepEqual(m.execArgv('["omasnap","--file","/tmp/a.png"]'), ['omasnap', '--file', '/tmp/a.png'])
+assert.deepEqual(m.execArgv(['bad\u0000arg']), [])
 
 assert.equal(m.durationFor(2, 0), 0)
 assert.equal(m.durationFor(0, 0), m.LOW_DURATION)
@@ -65,6 +78,12 @@ const open = m.panelLayout([
 assert.equal(open.placements.a2.y, 106)
 assert.equal(open.placements.a2.scale, 1)
 assert.equal(open.height, 156)
+const oneOpen = m.panelLayout([
+  { key: 'a1', app: 'Slack' }, { key: 'a2', app: 'Slack' }, { key: 'b1', app: 'Mail' }
+], true, {a1: 100, a2: 50, b1: 80}, {openGroup: 'app:slack'})
+assert.equal(oneOpen.placements.a2.y, 106)
+assert.equal(oneOpen.placements.b1.y, 168)
+assert.equal(oneOpen.placements.b1.scale, 1)
 assert.equal(m.slug('Google Chrome'), 'google-chrome')
 assert.equal(m.groupKey({app: 'Slack', key: 'a'}), 'app:slack')
 assert.equal(m.groupKey({app: 'notify-send', key: 'b'}), 'toast:b')

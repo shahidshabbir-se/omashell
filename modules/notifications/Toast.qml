@@ -15,6 +15,7 @@ Item {
   property bool sole: false
   property bool hovered: false
   property bool keyboardSelected: false
+  property string copiedCode: ''
   property real cardWidth: 380
 
   readonly property int border: 2
@@ -31,7 +32,8 @@ Item {
   readonly property bool bodyOpen: expanded || (hovered && sole)
   readonly property int bodyLines: bodyOpen ? 8 : 2
   readonly property int fade: 150
-  readonly property bool buttonsShown: actions.length > 0 && (expanded ? hovered : place.front)
+  readonly property real contentOpacity: expanded || place.front ? 1 : 0
+  readonly property bool buttonsShown: allDeeds.length > 0 && (expanded ? (hovered || keyboardSelected) : place.front)
 
   function summaryStartsWithGlyph(summary) {
     var text = summary.replace(/^\s+/, '')
@@ -47,33 +49,48 @@ Item {
     return spaces >= 2
   }
 
-  readonly property string iconName: String(row.appIcon || '')
+  readonly property string iconName: String(row.appIcon || '').replace(/^image:\/\/icon\//, '')
   readonly property string slugName: Model.slug(String(row.app || ''))
-  readonly property string iconSource: {
+  property int iconFallback: 0
+  readonly property var iconOptions: {
     var names = [iconName, slugName]
+    var out = []
     for (var i = 0; i < names.length; i++) {
-      if (names[i] !== '') {
-        var found = Quickshell.iconPath(names[i], true)
-        if (found !== '') return found
-      }
+      var name = String(names[i] || '')
+      if (!name) continue
+      var found = name.charAt(0) === '/' ? Model.safeImage(name) : Quickshell.iconPath(name, true)
+      if (found && out.indexOf(found) < 0) out.push(found)
     }
-    return ''
+    return out
   }
-  readonly property bool pictured: iconSource !== '' && iconLoader.status === Image.Ready
-  readonly property bool lettered: !pictured && !anonymous && !glyphLed
-  readonly property bool mono: /-symbolic/.test(iconSource) || iconSource.indexOf('/symbolic/') >= 0
+  readonly property string iconSource: String(iconOptions[iconFallback] || '')
+  onRowChanged: iconFallback = 0
+  readonly property bool senderPictured: String(row.image || '') !== '' && senderImage.status === Image.Ready
+  readonly property bool pictured: senderPictured || (iconSource !== '' && iconLoader.status === Image.Ready)
+  readonly property bool glyphed: !senderPictured && !pictured && String(row.glyph || '') !== ''
+  readonly property bool lettered: !senderPictured && !pictured && !glyphed && !anonymous && !glyphLed
+  readonly property bool mono: !senderPictured && (/-symbolic/.test(iconSource) || iconSource.indexOf('/symbolic/') >= 0)
+  readonly property var allDeeds: {
+    var deeds = []
+    var codes = row.codes || []
+    for (var c = 0; c < codes.length; c++) deeds.push({ kind: 'code', id: String(codes[c]), value: String(codes[c]), text: codes.length > 1 ? 'Copy ' + codes[c] : 'Copy code' })
+    var commands = row.execActions || []
+    for (var e = 0; e < commands.length; e++) deeds.push({ kind: 'exec', id: String(e), argv: commands[e].argv, text: String(commands[e].label || '') })
+    for (var a = 0; a < actions.length; a++) deeds.push({ kind: 'action', id: String(actions[a].id), text: String(actions[a].text || '') })
+    return deeds
+  }
 
   readonly property real thumbSlot: 40
   readonly property real deedSegment: 34
-  readonly property int deedColumns: Math.max(1, Math.min(3, actions.length))
-  readonly property int deedRows: Math.ceil(actions.length / deedColumns)
+  readonly property int deedColumns: Math.max(1, Math.min(3, allDeeds.length))
+  readonly property int deedRows: Math.ceil(allDeeds.length / deedColumns)
   readonly property real deedHeight: buttonsShown ? deedRows * (1 + deedSegment) : 0
 
   readonly property real restingBody: Math.ceil(Math.max(1, metrics.height) * 2)
   readonly property real textBlock: headline.height + (hasBody ? column.spacing + bodyBox.height : 0)
   readonly property real restingBlock: headline.height + (hasBody ? column.spacing + restingBody : 0)
   readonly property real textOffset: Math.max(0, (thumbHeight - restingBlock) / 2)
-  readonly property real thumbHeight: pictured || lettered ? thumbSlot : 0
+  readonly property real thumbHeight: pictured || lettered || glyphed ? thumbSlot : 0
   readonly property real fixedHeight: border * 2 + contentPaddingY * 2 + Math.max(thumbHeight, textOffset + textBlock)
   readonly property real targetHeight: fixedHeight + deedHeight
 
@@ -93,6 +110,14 @@ Item {
 
   signal dismissed()
   signal activated()
+
+  function doDeed(deed) {
+    if (deed.kind === 'code') {
+      copiedCode = String(deed.value)
+      copiedTimer.restart()
+    }
+    NotificationService.invokeDeed(row, deed)
+  }
 
   Rectangle {
     id: plate
@@ -120,6 +145,8 @@ Item {
     anchors.rightMargin: root.border + 12
     anchors.topMargin: root.border + root.contentPaddingY
     spacing: 12
+    opacity: root.contentOpacity
+    Behavior on opacity { NumberAnimation { duration: root.fade; easing.type: Easing.OutCubic } }
 
     Item {
       id: thumb
@@ -147,10 +174,48 @@ Item {
         }
       }
 
+      Text {
+        anchors.centerIn: parent
+        visible: root.glyphed
+        text: String(root.row.glyph || '')
+        color: Colors.foreground
+        font.family: Constants.fontFamily
+        font.pixelSize: Constants.fontTitle
+        textFormat: Text.PlainText
+        renderType: Text.NativeRendering
+      }
+
+      Image {
+        id: senderImage
+        anchors.fill: parent
+        visible: root.senderPictured
+        source: String(root.row.image || '')
+        sourceSize.width: 96
+        sourceSize.height: 96
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        cache: false
+        readonly property bool rounded: Constants.cornerRadius > 0
+        layer.enabled: visible && rounded
+        layer.effect: MultiEffect {
+          maskEnabled: senderImage.rounded
+          maskSource: senderMask
+        }
+      }
+
+      Rectangle {
+        id: senderMask
+        anchors.fill: parent
+        visible: false
+        layer.enabled: true
+        radius: Constants.cornerRadius
+        color: 'black'
+      }
+
       Image {
         id: iconLoader
         anchors.fill: parent
-        visible: root.pictured
+        visible: !root.senderPictured && root.pictured
         source: root.iconSource
         sourceSize.width: 96
         sourceSize.height: 96
@@ -162,6 +227,7 @@ Item {
           colorization: 1
           colorizationColor: Colors.foreground
         }
+        onStatusChanged: if (status === Image.Error && root.iconFallback < root.iconOptions.length) root.iconFallback += 1
       }
     }
 
@@ -276,6 +342,12 @@ Item {
     }
   }
 
+  Timer {
+    id: copiedTimer
+    interval: 1400
+    onTriggered: root.copiedCode = ''
+  }
+
   Item {
     id: deedArea
     anchors.left: parent.left
@@ -296,23 +368,25 @@ Item {
       opacity: 1
 
       Repeater {
-        model: root.actions
+        model: root.allDeeds
         delegate: DeedButton {
           required property var modelData
           required property int index
           readonly property int line: Math.floor(index / root.deedColumns)
           readonly property int slot: index % root.deedColumns
           readonly property int perLine: line < root.deedRows - 1 ? root.deedColumns
-            : root.actions.length - line * root.deedColumns
+            : root.allDeeds.length - line * root.deedColumns
           readonly property real start: Math.round(slot * deedRow.width / perLine)
           deed: modelData
+          taken: modelData.kind === 'code' && root.copiedCode === String(modelData.value)
+          hint: root.keyboardSelected && index < 9 ? String(index + 1) : ''
           ruleColor: Qt.rgba(root.dimColor.r, root.dimColor.g, root.dimColor.b, 0.35)
           leftRule: slot > 0
           width: Math.round((slot + 1) * deedRow.width / perLine) - start
           x: start
           y: line * (1 + root.deedSegment)
           height: 1 + root.deedSegment
-          onActivated: NotificationService.invoke(root.row, String(modelData.id))
+          onActivated: root.doDeed(modelData)
         }
       }
     }

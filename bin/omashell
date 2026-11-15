@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_path=$(readlink -f -- "${BASH_SOURCE[0]}")
+root=${OMASHELL_ROOT:-$(cd -- "$(dirname -- "$script_path")/.." && pwd)}
+qs_bin=$(command -v qs || command -v quickshell || true)
+if [[ -z $qs_bin ]]; then
+  printf '%s\n' 'omashell: Quickshell (qs) was not found in PATH.' >&2
+  exit 127
+fi
+
+if [[ -z ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+  if ! command -v hyprctl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
+    printf '%s\n' 'omashell: hyprctl and jq are required to locate the running Hyprland instance.' >&2
+    exit 127
+  fi
+  HYPRLAND_INSTANCE_SIGNATURE=$(hyprctl -j instances | jq -r '.[0].instance // empty')
+  if [[ -z $HYPRLAND_INSTANCE_SIGNATURE ]]; then
+    printf '%s\n' 'omashell: no running Hyprland instance was found.' >&2
+    exit 1
+  fi
+  export HYPRLAND_INSTANCE_SIGNATURE
+fi
+
+export OMASHELL_ROOT=$root
+exec "$qs_bin" -p "$root" "$@"

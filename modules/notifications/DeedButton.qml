@@ -5,6 +5,8 @@ Item {
   id: root
 
   property var deed: ({})
+  property string hint: ''
+  property bool taken: false
   property real rule: 1
   property color ruleColor: 'transparent'
   property bool leftRule: false
@@ -31,18 +33,33 @@ Item {
     color: root.ruleColor
   }
 
-  Text {
+  Row {
     anchors.centerIn: parent
     anchors.verticalCenterOffset: root.rule / 2
-    width: parent.width - 8
-    horizontalAlignment: Text.AlignHCenter
-    text: String(root.deed.text || '')
-    color: mouse.containsMouse ? Colors.foreground : Qt.darker(Colors.foreground, 1.15)
-    font.family: Constants.fontFamily
-    font.pixelSize: Constants.fontBody
-    elide: Text.ElideRight
-    textFormat: Text.PlainText
-    renderType: Text.NativeRendering
+    spacing: 6
+
+    Text {
+      visible: root.hint !== ''
+      text: root.hint
+      color: Colors.accent
+      font.family: Constants.fontFamily
+      font.pixelSize: Constants.fontBody
+      font.bold: true
+      textFormat: Text.PlainText
+      renderType: Text.NativeRendering
+    }
+
+    Text {
+      width: Math.min(implicitWidth, parent.parent.width - 8 - (root.hint ? 18 : 0))
+      horizontalAlignment: Text.AlignHCenter
+      text: root.taken ? '✓' : String(root.deed.text || '')
+      color: mouse.containsMouse ? Colors.foreground : Qt.darker(Colors.foreground, 1.15)
+      font.family: Constants.fontFamily
+      font.pixelSize: Constants.fontBody
+      elide: Text.ElideRight
+      textFormat: Text.PlainText
+      renderType: Text.NativeRendering
+    }
   }
 
   MouseArea {

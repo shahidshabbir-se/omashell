@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+edit=false
+if [[ ${1:-} == --edit ]]; then
+  edit=true
+  shift
+fi
+if [[ $# -gt 1 ]]; then
+  printf '%s\n' 'Usage: omashell-open-screenshot [--edit] [image]' >&2
+  exit 2
+fi
+
+if [[ $# -eq 1 ]]; then
+  image=$1
+else
+  directory=${OMASNAP_SCREENSHOT_DIR:-${HOME:?}/Pictures/Screenshots}
+  shopt -s nullglob nocaseglob
+  files=("$directory"/*.png "$directory"/*.jpg "$directory"/*.jpeg "$directory"/*.webp)
+  if [[ ${#files[@]} -eq 0 ]]; then
+    printf 'omashell-open-screenshot: no screenshots found in %s\n' "$directory" >&2
+    exit 1
+  fi
+  image=${files[0]}
+  newest=0
+  for candidate in "${files[@]}"; do
+    modified=$(stat -c %Y -- "$candidate")
+    if (( modified > newest )); then
+      newest=$modified
+      image=$candidate
+    fi
+  done
+fi
+
+if [[ ! -f $image ]]; then
+  printf 'omashell-open-screenshot: not a file: %s\n' "$image" >&2
+  exit 1
+fi
+
+if $edit; then
+  if ! command -v omasnap >/dev/null 2>&1; then
+    printf '%s\n' 'omashell-open-screenshot: omasnap is required for editing.' >&2
+    exit 127
+  fi
+  exec omasnap --file "$image"
+fi
+
+if ! command -v xdg-open >/dev/null 2>&1; then
+  printf '%s\n' 'omashell-open-screenshot: xdg-open is required to view images.' >&2
+  exit 127
+fi
+exec xdg-open "$image"

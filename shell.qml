@@ -132,6 +132,12 @@ ShellRoot {
   Visualizer {}
   ToastDeck {}
 
+  function runShellTool(name, args) {
+    var rootPath = Quickshell.env('OMASHELL_ROOT')
+    var executable = rootPath ? rootPath + '/bin/' + name : name
+    Quickshell.execDetached([executable].concat(args || []))
+  }
+
   IpcHandler {
     target: "omashell"
 
@@ -143,6 +149,13 @@ ShellRoot {
     function toggleAudio(): void { shell.showPanel(audioPanel, -1) }
     function togglePower(): void { shell.showPanel(powerPanel, -1) }
     function toggleNotifications(): void { shell.showPanel(notificationsPanel, -1) }
+    function toggleNotificationKeyboard(): void {
+      if (NotificationService.keyboardMode) NotificationService.stopKeyboard()
+      else NotificationService.startKeyboard()
+    }
+    function captureScreenshot(): void { shell.runShellTool('omashell-screenshot', []) }
+    function openLatestScreenshot(): void { shell.runShellTool('omashell-open-screenshot', []) }
+    function editLatestScreenshot(): void { shell.runShellTool('omashell-open-screenshot', ['--edit']) }
     function toggleDoNotDisturb(): void { NotificationService.toggleDnd() }
     function clearNotifications(): void { NotificationService.clear() }
     function dismissAllNotifications(): void { NotificationService.dismissAll() }

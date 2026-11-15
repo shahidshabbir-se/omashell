@@ -82,6 +82,57 @@ function oneLine(body) {
     .trim()
 }
 
+function safeImage(value) {
+  var text = String(value || '')
+  if (/^image:\/\/qsimage\/[0-9]+\/[0-9]+$/.test(text)) return text
+  if (text.indexOf('image://icon/') === 0) return ''
+  if (/^file:\/\//i.test(text)) {
+    if (!/^file:\/\/\//i.test(text) || /[?#]/.test(text)) return ''
+    try { text = decodeURIComponent(text.slice(7)) } catch (e) { return '' }
+  }
+  if (text.length > 1024 || text.charAt(0) !== '/' || /[\x00-\x1f\x7f-\x9f]/.test(text)) return ''
+  var parts = text.slice(1).split('/')
+  for (var i = 0; i < parts.length; i++) if (!parts[i] || parts[i] === '.' || parts[i] === '..') return ''
+  if (/^\/(proc|sys|dev)(\/|$)/.test(text)) return ''
+  if (/^\/run(\/|$)/.test(text) && !/^\/run\/user\/[0-9]+\/.+/.test(text)) return ''
+  return 'file://' + text.split('/').map(encodeURIComponent).join('/')
+}
+
+function codes(summary, body) {
+  var text = String(summary || '') + '\n' + String(body || '')
+  if (!/\b(code|otp|verification|verify|passcode|pin|2fa|security)\b/i.test(text)) return []
+  var out = [], seen = {}, re = /\b(\d{4,8}|[A-Z0-9]{5,8})\b/g, match
+  while ((match = re.exec(text)) !== null && out.length < 3) {
+    if (/\d/.test(match[1]) && !seen[match[1]]) { seen[match[1]] = true; out.push(match[1]) }
+  }
+  return out
+}
+
+function execArgv(raw) {
+  var argv = raw
+  if (typeof raw === 'string') { try { argv = JSON.parse(raw) } catch (e) { return [] } }
+  if (!argv || typeof argv.length !== 'number' || argv.length < 1 || argv.length > 32) return []
+  for (var i = 0; i < argv.length; i++)
+    if (typeof argv[i] !== 'string' || argv[i].length > 4096 || argv[i].indexOf('\u0000') >= 0) return []
+  return argv[0] && argv[0].charAt(0) !== '-' ? Array.prototype.slice.call(argv) : []
+}
+
+function execActions(raw) {
+  var data = raw
+  if (typeof raw === 'string') { try { data = JSON.parse(raw) } catch (e) { return [] } }
+  if (!data || typeof data.length !== 'number') return []
+  var out = []
+  for (var i = 0; i < data.length && out.length < 3; i++) {
+    var item = data[i] || {}, argv = item.argv, label = String(item.label || '').trim().slice(0, 128)
+    if (typeof argv === 'string') { try { argv = JSON.parse(argv) } catch (e) { argv = null } }
+    if (!label || !argv || typeof argv.length !== 'number' || argv.length < 1 || argv.length > 32) continue
+    var valid = true
+    for (var j = 0; j < argv.length; j++) if (typeof argv[j] !== 'string' || argv[j].length > 4096 || argv[j].indexOf('\u0000') >= 0) valid = false
+    if (valid && argv[0] && argv[0].charAt(0) !== '-') out.push({ label: label, argv: Array.prototype.slice.call(argv) })
+  }
+  return out
+}
+
 function actions(raw) {
   var list = raw && typeof raw.length === 'number' ? raw : []
   var out = []
@@ -104,10 +155,15 @@ function snapshot(raw, key, now) {
     id: Number(source.id) || 0,
     app: bounded(String(source.app === undefined ? source.appName : source.app), MAX_SOURCE).trim(),
     appIcon: bounded(String(source.appIcon || ''), 1024),
+    image: safeImage(source.image),
     summary: bounded(String(source.summary || ''), MAX_SUMMARY).trim(),
     body: bounded(String(source.body || ''), MAX_BODY),
     html: renderBody(source.body),
     urgency: urgency,
+    glyph: bounded(String(source.glyph || ''), 16),
+    codes: codes(source.summary, source.body),
+    execArgv: execArgv(source.execArgv),
+    execActions: execActions(source.execActions),
     actions: actions(source.actions),
     timeout: Number(source.timeout) || 0,
     transient: source.transient === true,
@@ -198,7 +254,7 @@ function panelLayout(rows, expanded, heights, options) {
     var items = decks[group2]
     var top = y
     var frontHeight = heightOf(items[0].key)
-    var open = !!expanded
+    var open = !!expanded && (!settings.openGroup || group2 === settings.openGroup)
     var height = 0
     for (var r = 0; r < items.length; r++) {
       var key = items[r].key
@@ -291,7 +347,8 @@ if (typeof module !== 'undefined') {
     NORMAL_DURATION: NORMAL_DURATION, MAX_DURATION: MAX_DURATION,
     bounded: bounded, escapeHtml: escapeHtml, decodeEntities: decodeEntities,
     safeHttpUrl: safeHttpUrl, renderBody: renderBody, oneLine: oneLine,
-    actions: actions, snapshot: snapshot, isEphemeral: isEphemeral,
+    actions: actions, safeImage: safeImage, codes: codes, execArgv: execArgv, execActions: execActions,
+    snapshot: snapshot, isEphemeral: isEphemeral,
     bypassesQuiet: bypassesQuiet, quietReason: quietReason, durationFor: durationFor,
     cap: cap, slug: slug, groupKey: groupKey, ago: ago,
     panelLayout: panelLayout, PEEK: PEEK, VISIBLE: VISIBLE,

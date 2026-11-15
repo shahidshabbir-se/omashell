@@ -1,12 +1,16 @@
 pragma Singleton
 
 import QtQuick
+import Quickshell
 import Quickshell.Io
 
                                                                                 
                                                                                 
 QtObject {
   id: root
+
+  readonly property string userConfigPath: (Quickshell.env('XDG_CONFIG_HOME') || (Quickshell.env('HOME') + '/.config')) + '/omashell/shell.json'
+  readonly property string bundledConfigPath: String(Qt.resolvedUrl('shell.json')).replace('file://', '')
 
   readonly property var defaults: ({
     version: 1,
@@ -90,11 +94,20 @@ QtObject {
                                                                             
                                                                             
   property FileView configFile: FileView {
-    path: String(Qt.resolvedUrl("shell.json")).replace("file://", "")
+    path: root.userConfigPath
     watchChanges: true
     printErrors: false
 
     onFileChanged: reload()
+    onLoaded: root.load(text())
+    onLoadFailed: fallbackFile.reload()
+  }
+
+  property FileView fallbackFile: FileView {
+    path: root.bundledConfigPath
+    watchChanges: true
+    printErrors: false
+
     onLoaded: root.load(text())
     onLoadFailed: root.raw = null
   }

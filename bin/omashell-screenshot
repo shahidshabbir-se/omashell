@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  printf '%s\n' 'Usage: omashell-screenshot [smart|region|windows|fullscreen|scroll] [copy|save] [omasnap options]'
+  printf '%s\n' 'Runs the standalone omasnap screenshot and annotation utility'
+}
+
+if [[ ${1:-} == --help || ${1:-} == -h ]]; then
+  usage
+  if command -v omasnap >/dev/null 2>&1; then exec omasnap --help; fi
+  exit 0
+fi
+
+if ! command -v omasnap >/dev/null 2>&1; then
+  printf '%s\n' 'omashell-screenshot: omasnap is required but was not found in PATH.' >&2
+  exit 127
+fi
+
+args=()
+for arg in "$@"; do
+  case "$arg" in
+    copy) args+=(--copy) ;;
+    save) args+=(--save) ;;
+    slurp) ;;
+    --notify)
+      printf '%s\n' 'omashell-screenshot: --notify is Omarchy-specific and is not supported.' >&2
+      exit 2
+      ;;
+    *) args+=("$arg") ;;
+  esac
+done
+
+exec omasnap "${args[@]}"

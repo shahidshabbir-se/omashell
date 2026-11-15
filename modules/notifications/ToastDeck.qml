@@ -21,10 +21,16 @@ Variants {
   property var heights: ({})
   property int heightsRevision: 0
   property bool hoveredDeck: false
+  property string hoveredKey: ''
 
-  readonly property bool expandedDeck: hoveredDeck
+  readonly property bool expandedDeck: hoveredDeck || NotificationService.keyboardMode
+  readonly property string openGroup: {
+    var key = NotificationService.keyboardMode ? NotificationService.keyboardKey : deck.hoveredKey
+    var row = NotificationService.rowFor(key)
+    return row ? Model.groupKey(row) : ''
+  }
   readonly property var layout: Model.panelLayout(NotificationService.live, deck.expandedDeck, deck.heights,
-    { gap: 6, deckGap: 12 })
+    { gap: 6, deckGap: 12, openGroup: deck.openGroup })
 
   function setHeight(key, value) {
     if (Number(deck.heights[key]) === Number(value)) return
@@ -63,7 +69,8 @@ Variants {
 
     WlrLayershell.namespace: 'omashell-notifications'
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: NotificationService.keyboardMode && String(modelData.name) === deck.targetName
+      ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     Item {
       id: clipper
@@ -91,12 +98,23 @@ Variants {
             width: deck.cardWidth
             row: card.modelData
             place: card.placement
-            expanded: deck.expandedDeck
+            expanded: deck.expandedDeck && deck.openGroup === Model.groupKey(card.modelData)
+            keyboardSelected: NotificationService.keyboardMode && String(card.modelData.key) === NotificationService.keyboardKey
             sole: NotificationService.live.length === 1
+            onHoveredChanged: if (card.hovered) deck.hoveredKey = String(card.modelData.key)
             onTargetHeightChanged: deck.setHeight(card.modelData.key, card.targetHeight)
             onDismissed: NotificationService.dismiss(card.modelData)
             onActivated: NotificationService.activate(card.modelData)
           }
+        }
+      }
+
+      Item {
+        id: keyCatcher
+        anchors.fill: parent
+        focus: NotificationService.keyboardMode && String(modelData.name) === deck.targetName
+        Keys.onPressed: function(event) {
+          if (NotificationService.keyboardPressed(event.key, event.text)) event.accepted = true
         }
       }
 
@@ -107,7 +125,10 @@ Variants {
         anchors.margins: -4
         hoverEnabled: true
         acceptedButtons: Qt.NoButton
-        onContainsMouseChanged: deck.hoveredDeck = containsMouse
+        onContainsMouseChanged: {
+          deck.hoveredDeck = containsMouse
+          if (!containsMouse) deck.hoveredKey = ''
+        }
       }
     }
   }
