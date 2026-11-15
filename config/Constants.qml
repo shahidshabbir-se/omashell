@@ -37,6 +37,7 @@ QtObject {
                                                                                  
                                                                                      
   readonly property int iconSlot: 27
+  readonly property int statusSlot: 21
                                                        
   readonly property int barSectionMargin: 8
 

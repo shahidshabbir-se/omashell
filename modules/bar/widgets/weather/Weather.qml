@@ -7,6 +7,7 @@ import qs.modules.bar.widgets.weather
                                                                                    
 IconWidget {
   id: root
+  slotWidth: Constants.statusSlot
 
   glyph: WeatherService.glyph
                                                                      

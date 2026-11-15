@@ -6,8 +6,8 @@
     ],
     "center": [
       "clock",
-      "weather",
-      "worldclock"
+      "worldclock",
+      "weather"
     ],
     "right": [
       "bluetooth",

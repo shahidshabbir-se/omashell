@@ -20,6 +20,15 @@ Row {
                                                                                
   property var ids: []
 
+  readonly property real clockCenter: {
+    var count = widgets.count
+    for (var i = 0; i < count; i++) {
+      var item = widgets.itemAt(i)
+      if (item && item.widgetId === "clock" && item.visible) return item.x + item.width / 2
+    }
+    return width / 2
+  }
+
                                                                               
                                                   
   property var screen: null
@@ -44,6 +53,7 @@ Row {
   }
 
   Repeater {
+    id: widgets
     model: root.ids
 
     delegate: Item {

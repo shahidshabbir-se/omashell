@@ -6,6 +6,7 @@ import qs.modules.bar.widgets.worldclock
                                                                                
 IconWidget {
   id: root
+  slotWidth: Constants.statusSlot
 
   glyph: "\uDB80\uDDE7"
   tooltip: WorldClockService.homeCity !== ""
