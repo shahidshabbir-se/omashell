@@ -2,23 +2,24 @@ import QtQuick
 import QtQuick.Controls
 import qs.config
 
-// Shared panel tooltip: plain foreground text on the shell tooltip surface,
-// delayed like Omarchy's panel tips so it doesn't flash while moving the pointer.
+                                                                            
+                                                                                  
 ToolTip {
   id: root
 
-  property color foreground: Colors.foreground
-  property color backgroundColor: Colors.darkerBackground
+  property color foreground: Colors.tooltipText
+  property color backgroundColor: Colors.tooltipBackground
+  property color borderColor: Colors.tooltipBorder
   property string fontFamily: Constants.fontFamily
   property int fontSize: Constants.fontBodySmall
 
-  delay: 400
+  delay: Constants.tooltipDelay
   padding: 0
 
   background: Rectangle {
     color: root.backgroundColor
     border.width: 1
-    border.color: Colors.muted
+    border.color: root.borderColor
     radius: Constants.cornerRadius
   }
 
@@ -28,9 +29,11 @@ ToolTip {
     color: root.foreground
     font.family: root.fontFamily
     font.pixelSize: root.fontSize
-    leftPadding: 6
-    rightPadding: 6
-    topPadding: 3
-    bottomPadding: 3
+    wrapMode: Text.WordWrap
+                                                                   
+    leftPadding: 11
+    rightPadding: 11
+    topPadding: 7
+    bottomPadding: 7
   }
 }

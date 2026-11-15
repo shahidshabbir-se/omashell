@@ -3,8 +3,8 @@ import qs.common
 import qs.config
 import "Model.js" as Model
 
-// One device row: glyph, name, status, and the word for what acting on it does.
-// The panel decides the action; this only reports that the row was activated.
+                                                                                
+                                                                              
 Item {
   id: root
 
@@ -83,8 +83,8 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     spacing: 1
 
-    // Plain Text, not OpticalText: a row is a left-aligned line of information,
-    // and OpticalText centres its label by design.
+                                                                                
+                                                   
     Text {
       width: parent.width
       text: root.row ? root.row.label : ""

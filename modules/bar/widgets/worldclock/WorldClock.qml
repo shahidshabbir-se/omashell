@@ -3,7 +3,7 @@ import qs.common
 import qs.config
 import qs.modules.bar.widgets.worldclock
 
-// World clock icon. Only state; IconWidget owns the canvas, slot and centring.
+                                                                               
 IconWidget {
   id: root
 

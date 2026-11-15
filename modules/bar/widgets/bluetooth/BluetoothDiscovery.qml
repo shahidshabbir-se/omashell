@@ -1,13 +1,13 @@
 import QtQuick
 
-// Discovery lifecycle for the bluetooth panel, kept apart because it has to survive
-// BlueZ ignoring a stop request: a scan that is still running keeps the adapter
-// awake and drains it, so stopping is retried a few times before giving up.
+                                                                                    
+                                                                                
+                                                                            
 QtObject {
   id: root
 
   property var adapter: null
-  // True while the panel wants devices to show up.
+                                                   
   property bool active: false
 
   property var owns: null
@@ -15,8 +15,8 @@ QtObject {
 
   function start() {
     if (!root.adapter || !root.adapter.enabled) return
-    // Like Omarchy, adopt a scan already in progress so closing this panel can
-    // settle it, and claim ownership before requesting a new one.
+                                                                               
+                                                                  
     root.owns = root.adapter
     if (!root.adapter.discovering) root.adapter.discovering = true
   }
@@ -52,7 +52,7 @@ QtObject {
     onTriggered: root.start()
   }
 
-  // QtObject has no default property, so children are declared as named properties.
+                                                                                    
   property Connections adapterWatch: Connections {
     id: adapterWatch
     target: root.adapter
@@ -63,7 +63,7 @@ QtObject {
     }
 
     function onDiscoveringChanged() {
-      // The adapter stopped by itself: nothing left to own.
+                                                            
       if (root.owns && !root.owns.discovering) root.owns = null
     }
   }

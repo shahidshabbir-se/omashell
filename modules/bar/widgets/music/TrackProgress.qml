@@ -43,7 +43,7 @@ ColumnLayout {
             return Math.min(1, Math.max(0, xPosition / Math.max(1, width)));
         }
 
-        // Remaining track: starts one gap after the active indicator and stops before the end dot
+                                                                                                  
         Rectangle {
             id: remainingTrack
             x: Math.min(slider.width, slider.activeWidth + slider.gap)
@@ -54,7 +54,7 @@ ColumnLayout {
             color: Colors.withAlpha(Colors.foreground, 0.22)
         }
 
-        // Stop dot parked at the far end of the track
+                                                      
         Rectangle {
             id: stopDot
             anchors.right: parent.right
@@ -66,7 +66,7 @@ ColumnLayout {
             opacity: slider.interactive ? 1.0 : 0.45
         }
 
-        // Material 3 Expressive animated wiggle wave
+                                                     
         Canvas {
             id: wave
             anchors.fill: parent
@@ -120,7 +120,7 @@ ColumnLayout {
                 ctx.strokeStyle = Colors.accent;
                 ctx.beginPath();
 
-                // Taper the wave near the end so the head meets the gap smoothly
+                                                                                 
                 const taper = Math.max(1, wave.wavelength);
                 for (let x = 0; x <= end; x += 1) {
                     const fade = Math.min(1, (end - x) / taper);

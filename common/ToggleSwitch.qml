@@ -1,24 +1,25 @@
 import QtQuick
 import qs.config
 
-// Bare on/off switch: a track with a sliding knob and no label.
-//
-// Monochrome on purpose - the track and knob are drawn from `foreground` at set
-// alphas, so the switch follows the bar's text colour instead of competing with
-// the accent (accent is reserved for the open-panel mark and focus rings).
-//
-// One number sets the size: `trackHeight`. Width, knob size and knob inset are
-// derived from it, so a compact placement can shrink the whole control instead of
-// scaling a big one down - scaling lands the track and knob on fractional pixels
-// and blurs their edges.
-//
-// The track has no border of its own. The only outline is the keyboard-focus ring,
-// drawn outside the track in the space this control reserves for it.
+                                                                
+  
+                                                                                
+                                                                                
+                                                                           
+  
+                                                                               
+                                                                                  
+                                                                                 
+                         
+  
+                                                                                   
+                                                                     
 Item {
   id: root
 
   property bool checked: false
   property bool busy: false
+  property string navGroup: ""
   property bool navigable: true
   property bool hasCursor: false
   property var panelNav: null
@@ -26,12 +27,12 @@ Item {
 
   property color foreground: Colors.foreground
 
-  // Room for the keyboard-focus ring on each side.
+                                                   
   property int cursorPad: 6
 
-  // Follow the theme, not our taste: sharp when the theme has no corner radius.
-  // (Constants.cornerRadius is 0 here, so the switch renders square, which is what
-  // the same theme does on the other side.)
+                                                                                
+                                                                                   
+                                            
   property bool rounded: Constants.cornerRadius > 0
 
   property int trackHeight: 22
@@ -47,11 +48,11 @@ Item {
 
   function activate() {
     if (root.busy) return
-    // The caller owns checked state; preserve its binding to the adapter.
+                                                                          
     root.toggled()
   }
 
-  // Keyboard focus only: hovering does not draw it.
+                                                    
   Rectangle {
     anchors.fill: parent
     visible: root.hasCursor
@@ -61,7 +62,7 @@ Item {
     border.color: root.shade(0.25)
   }
 
-  // Foreground at an alpha, so the whole switch stays in one colour.
+                                                                     
   function shade(alpha) {
     return Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, alpha)
   }
@@ -73,8 +74,8 @@ Item {
     height: root.trackHeight
     anchors.centerIn: parent
     radius: root.rounded ? height / 2 : 0
-    // Match Omarchy's normal/selected chrome: a faint off track with an idle
-    // outline, then the stronger foreground fill when enabled.
+                                                                             
+                                                               
     color: root.checked ? root.shade(0.18) : root.shade(0.04)
     border.width: root.checked ? 0 : 1
     border.color: root.shade(0.4)

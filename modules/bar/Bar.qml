@@ -14,63 +14,100 @@ PanelWindow {
   implicitHeight: Constants.barHeight
   color: Colors.background
 
-  // Distance from the screen edge to the first widget, same token the sections use.
+                                                                                    
   readonly property int sectionMargin: Constants.barSectionMargin
 
-  // Which widget's popup is open, resolved by the shell from its popup map.
+                                                                            
   property string activeId: ""
 
-  // Emitted for any widget that signals activation. The shell resolves the id
-  // to a popup; the bar has no idea popups exist.
+                                                                              
+                                                  
   signal widgetActivated(string id, real anchorX)
 
-  // Hover text and where to put it, in content coordinates.
+                                                            
   property string tooltipText: ""
   property real tooltipX: 0
+  property var tooltipTarget: null
+  property bool tooltipShown: false
+  property int tooltipRequest: 0
 
-  // Set by the shell while any popup is open. A tooltip over an open panel is
-  // noise - the pointer is usually passing the bar on its way into the panel.
+                                                                              
+                                                                              
   property bool panelOpen: false
 
-  onPanelOpenChanged: if (root.panelOpen) root.tooltipText = ""
+  onPanelOpenChanged: if (root.panelOpen) root.clearTooltip()
 
-  // A click on the bar that misses every icon: the shell closes the open popup.
+                                                                                
   signal barClicked()
 
-  function showTooltip(text, centerX, section) {
-    if (text === "") {
-      root.tooltipText = ""
-      return
-    }
-    root.tooltipX = root.contentItem.mapFromItem(section, centerX, 0).x
-    root.tooltipText = text
+                                                                         
+                                                                          
+                                                               
+  function clearTooltip() {
+    tooltipTimer.stop()
+    if (root.tooltipShown) tooltipWarmTimer.restart()
+    root.tooltipTarget = null
+    root.tooltipText = ""
+    root.tooltipShown = false
+    root.tooltipRequest++
   }
 
-  // Hover tooltip. A PopupWindow relative to the bar window rather than an
-  // independent layer surface: it shares the bar's output, so it cannot adopt a
-  // different scale, and relativeX/relativeY are integers by type.
+  function showTooltip(slot, text, centerX, section) {
+    var warm = root.tooltipShown || tooltipWarmTimer.running
+    root.clearTooltip()
+    if (!slot || !text || root.panelOpen) return
+    var request = root.tooltipRequest
+    root.tooltipTarget = slot
+    root.tooltipText = text
+    root.tooltipX = root.contentItem.mapFromItem(section, centerX, 0).x
+    Qt.callLater(function() {
+      if (request !== root.tooltipRequest || root.tooltipTarget !== slot) return
+      if (warm) root.tooltipShown = true
+      else tooltipTimer.restart()
+    })
+  }
+
+  function hideTooltip(slot) {
+    if (root.tooltipTarget === slot) root.clearTooltip()
+  }
+
+  Timer {
+    id: tooltipTimer
+    interval: Constants.tooltipDelay
+    onTriggered: if (root.tooltipTarget && !root.panelOpen) root.tooltipShown = true
+  }
+
+  Timer {
+    id: tooltipWarmTimer
+    interval: Constants.tooltipDelay
+  }
+
+                                                                           
+                                                                                
+                                                                   
   PopupWindow {
     id: tooltipWindow
 
-    // 0.3.2 deprecated parentWindow/relativeX/relativeY for the anchor object.
+                                                                               
     anchor.window: root
     anchor.rect.x: Math.round(root.tooltipX - width / 2)
-    anchor.rect.y: Constants.barHeight + Constants.gap
+    anchor.rect.y: Constants.barHeight + 6
+    anchor.adjustment: PopupAdjustment.Slide
     anchor.rect.width: 1
     anchor.rect.height: 1
 
-    visible: root.tooltipText !== "" && !root.panelOpen
+    visible: root.tooltipShown && root.tooltipText !== "" && !root.panelOpen
     color: "transparent"
-    // Sized from the label, not the bubble: a plain Rectangle has no implicit
-    // size from its children, and a zero-width popup is a Wayland protocol error.
+                                                                              
+                                                                                  
     implicitWidth: Math.ceil(tooltipLabel.implicitWidth) + 20
     implicitHeight: Math.max(22, Math.ceil(tooltipLabel.implicitHeight) + 14)
 
-    // Reveal one frame after the surface maps. The first configure can arrive at a
-    // different scale than the bar (measured: popup dpr 2, bar 1.3333), which would
-    // draw the 1px border at two widths. Waiting a frame lets Qt settle it - and a
-    // strict devicePixelRatio equality against the bar never passes here, so that
-    // gate is deliberately not used.
+                                                                                   
+                                                                                    
+                                                                                   
+                                                                                  
+                                     
     property bool revealed: false
 
     onVisibleChanged: {
@@ -86,9 +123,9 @@ PanelWindow {
 
       anchors.fill: parent
       opacity: tooltipWindow.revealed ? 1 : 0
-      color: Colors.darkBackground
+      color: Colors.tooltipBackground
       border.width: 1
-      border.color: Colors.muted
+      border.color: Colors.tooltipBorder
       radius: Constants.cornerRadius
 
       Text {
@@ -96,7 +133,7 @@ PanelWindow {
 
         anchors.centerIn: parent
         text: root.tooltipText
-        color: Colors.foreground
+        color: Colors.tooltipText
         font.family: Constants.fontFamily
         font.pixelSize: Constants.fontBody
         textFormat: Text.PlainText
@@ -105,7 +142,7 @@ PanelWindow {
     }
   }
 
-  // Under the sections (declared first), so icons keep their own clicks.
+                                                                         
   MouseArea {
     anchors.fill: parent
     onClicked: root.barClicked()
@@ -125,7 +162,8 @@ PanelWindow {
       root.widgetActivated(id, root.contentItem.mapFromItem(leftSection, x, 0).x)
     }
 
-    onTooltipRequested: function(text, x) { root.showTooltip(text, x, leftSection) }
+    onTooltipEntered: function(slot, text, x) { root.showTooltip(slot, text, x, leftSection) }
+    onTooltipLeft: function(slot) { root.hideTooltip(slot) }
   }
 
   BarSection {
@@ -141,7 +179,8 @@ PanelWindow {
       root.widgetActivated(id, root.contentItem.mapFromItem(centerSection, x, 0).x)
     }
 
-    onTooltipRequested: function(text, x) { root.showTooltip(text, x, centerSection) }
+    onTooltipEntered: function(slot, text, x) { root.showTooltip(slot, text, x, centerSection) }
+    onTooltipLeft: function(slot) { root.hideTooltip(slot) }
   }
 
   BarSection {
@@ -158,6 +197,7 @@ PanelWindow {
       root.widgetActivated(id, root.contentItem.mapFromItem(rightSection, x, 0).x)
     }
 
-    onTooltipRequested: function(text, x) { root.showTooltip(text, x, rightSection) }
+    onTooltipEntered: function(slot, text, x) { root.showTooltip(slot, text, x, rightSection) }
+    onTooltipLeft: function(slot) { root.hideTooltip(slot) }
   }
 }

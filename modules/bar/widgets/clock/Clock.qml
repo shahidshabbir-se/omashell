@@ -2,9 +2,9 @@ import QtQuick
 import qs.common
 import qs.config
 
-// Date/time label for the bar. Identity comes from the Widget base (so
-// shell.json can seed a format), the glyph centring from OpticalText, and the
-// right-click format cycling stays here because it is this widget's behaviour.
+                                                                       
+                                                                              
+                                                                               
 Widget {
   id: root
 
@@ -23,7 +23,7 @@ Widget {
     "yyyy-MM-dd HH:mm"
   ]
 
-  // Seeded from shell.json ({"id": "clock", "format": 3}); right click cycles it.
+                                                                                  
   property int formatIndex: setting("format", 0)
   property var currentDate: new Date()
 

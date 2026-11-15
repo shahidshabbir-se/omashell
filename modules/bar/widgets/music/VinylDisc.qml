@@ -11,7 +11,7 @@ Item {
 
     anchors.fill: parent
 
-    // Base vinyl body: deep sleek record surface
+                                                 
     Rectangle {
         id: vinylBody
         anchors.fill: parent
@@ -21,7 +21,7 @@ Item {
         border.color: Colors.withAlpha(Colors.muted, 0.28)
     }
 
-    // Outer rim bevel
+                      
     Rectangle {
         anchors.centerIn: parent
         width: parent.width - 6
@@ -32,7 +32,7 @@ Item {
         border.color: Colors.withAlpha(Colors.foreground, 0.08)
     }
 
-    // Concentric sound grooves with varying opacities
+                                                      
     Repeater {
         model: [14, 24, 34, 46, 56, 68, 78, 90, 100, 112]
 
@@ -50,7 +50,7 @@ Item {
         }
     }
 
-    // Vinyl light reflection sheens (the cross-light sheen seen on physical vinyl)
+                                                                                   
     Item {
         anchors.fill: parent
         opacity: root.hovered ? 0.25 : 0.16
@@ -61,7 +61,7 @@ Item {
             }
         }
 
-        // Reflection 1: Top-left to bottom-right sheen highlight
+                                                                 
         Rectangle {
             anchors.centerIn: parent
             width: parent.width * 0.94
@@ -95,7 +95,7 @@ Item {
             }
         }
 
-        // Reflection 2: Opposing sheen highlight
+                                                 
         Rectangle {
             anchors.centerIn: parent
             width: parent.width * 0.94
@@ -130,7 +130,7 @@ Item {
         }
     }
 
-    // Run-out groove (dead wax inner ring)
+                                           
     Rectangle {
         anchors.centerIn: parent
         width: Math.round(parent.width * 0.46)
@@ -141,7 +141,7 @@ Item {
         border.color: Colors.withAlpha(Colors.foreground, 0.12)
     }
 
-    // Center record label — glowing with the theme's primary accent!
+                                                                     
     Rectangle {
         id: centerLabel
         anchors.centerIn: parent
@@ -153,7 +153,7 @@ Item {
         border.width: 2
         border.color: Colors.withAlpha(Colors.backgroundDeep, 0.5)
 
-        // Subtle gradient sheen on the label
+                                             
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
@@ -174,7 +174,7 @@ Item {
             }
         }
 
-        // Inner circular band on label
+                                       
         Rectangle {
             anchors.centerIn: parent
             width: parent.width - 14
@@ -185,7 +185,7 @@ Item {
             border.color: Colors.withAlpha(Colors.background, 0.35)
         }
 
-        // Musical note glyph / vinyl record icon in the center label
+                                                                     
         Text {
             anchors.centerIn: parent
             anchors.verticalCenterOffset: -1
@@ -196,7 +196,7 @@ Item {
             opacity: 0.88
         }
 
-        // Center spindle hole (shows through to background with a metallic rim)
+                                                                                
         Rectangle {
             anchors.centerIn: parent
             width: 14

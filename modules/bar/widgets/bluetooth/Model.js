@@ -1,6 +1,6 @@
-// Pure helpers for the bluetooth panel: turning Quickshell's device objects into
-// the plain rows the view binds to. No Qt types and no state, so the panel stays a
-// view and it alone owns the actions.
+                                                                                 
+                                                                                   
+                                      
 
 function toArray(values) {
   if (!values) return []
@@ -38,8 +38,8 @@ function isUuidLike(value) {
   return /^[0-9a-f]+$/.test(bare) && bare.indexOf(":") === -1
 }
 
-// Plenty of devices advertise only a uuid, or their own address, as a name.
-// Showing the address is less confusing than showing either of those.
+                                                                            
+                                                                      
 function hasHumanName(device) {
   var name = label(device)
   if (name === "") return false
@@ -48,8 +48,8 @@ function hasHumanName(device) {
   return true
 }
 
-// Match the Bluetooth panel's row glyphs: the connected mark for active
-// devices and the plain Bluetooth mark for paired/discovered devices.
+                                                                        
+                                                                      
 function glyphFor(device) {
   return device && device.connected ? "\uDB80\uDCB1" : "\uDB80\uDCAF"
 }
@@ -86,15 +86,15 @@ function sortedRows(rows) {
   })
 }
 
-// connected / known / discovered, each sorted, as plain rows.
+                                                              
 function deviceLists(devices) {
   var out = { connected: [], known: [], discovered: [] }
   var list = toArray(devices)
 
   for (var i = 0; i < list.length; i++) {
-    // A device advertising only an address or a uuid is not worth a row: it reads
-    // as a serial number and there is nothing to recognise. Same filter Omarchy's
-    // model applies.
+                                                                                  
+                                                                                  
+                     
     if (!hasHumanName(list[i])) continue
     var section = sectionOf(list[i])
     if (section === "") continue
@@ -110,15 +110,15 @@ function deviceLists(devices) {
 function statusText(row, pending) {
   if (pending) return actionLabel(pending)
   if (!row) return ""
-  // Omarchy shows battery only for connected devices.
+                                                      
   if (row.connected && row.battery >= 0) return String(row.battery) + "%"
-  // Omarchy only shows a secondary line when it has live battery or action
-  // state; connected/paired membership is already conveyed by the section.
+                                                                           
+                                                                           
   return ""
 }
 
-// What acting on a row does: connected rows disconnect, known rows connect,
-// freshly discovered ones pair (and then connect).
+                                                                            
+                                                   
 function actionFor(row) {
   if (!row) return ""
   if (row.section === "connected") return "disconnect"
@@ -149,8 +149,8 @@ function withPending(map, address, action) {
   return next
 }
 
-// Retain pending labels until BlueZ confirms the target state, rather than
-// trusting bluetoothctl's process lifetime (which can outlive a successful link).
+                                                                           
+                                                                                  
 function syncPending(map, devices) {
   var next = ({})
   var list = toArray(devices)

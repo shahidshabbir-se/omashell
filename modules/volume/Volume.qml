@@ -24,7 +24,7 @@ Scope {
     }
 
     function observe() {
-        // Read the node directly: derived property handlers can run in any order.
+                                                                                  
         if (!available) {
             observedSink = null;
             dismiss();
@@ -36,7 +36,7 @@ Scope {
             && (previousVolume !== nextVolume || previousMuted !== nextMuted);
         if (observedSink !== sink)
             dismiss();
-        // Binding a new output establishes a baseline, not a user change.
+                                                                          
         observedSink = sink;
         previousVolume = nextVolume;
         previousMuted = nextMuted;
@@ -70,8 +70,8 @@ Scope {
 
     onSinkChanged: observe()
     onAvailableChanged: observe()
-    // PwNodeAudio.volume notifies via volumesChanged; these derived properties
-    // also avoid showing the OSD for channel changes with an unchanged average.
+                                                                               
+                                                                                
     onVolumeChanged: observe()
     onMutedChanged: observe()
     Component.onCompleted: observe()

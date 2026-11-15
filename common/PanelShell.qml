@@ -12,17 +12,17 @@ PanelWindow {
   anchors.left: true
   color: "transparent"
   exclusionMode: ExclusionMode.Ignore
-  // Input region while open: everything except the bar strip. The bar stays
-  // clickable so another icon can take this panel over, and the bar itself closes
-  // it when the click misses an icon.
+                                                                            
+                                                                                  
+                                      
   mask: Region { item: root.opened ? blocker : null }
 
   WlrLayershell.layer: WlrLayer.Overlay
   WlrLayershell.namespace: root.layerNamespace
-  // Interactive panels ask for the keyboard while they are open; the read-only
-  // ones (clock, weather, world clock) keep taking no keys at all.
-  // Prime keyboard focus exclusively for a short mapping window. OnDemand alone
-  // does not reliably reacquire focus when an already-mapped layer is reopened.
+                                                                               
+                                                                   
+                                                                                
+                                                                                
   WlrLayershell.keyboardFocus: root.keyboard && root.opened
     ? (root.focusPrimed ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
     : WlrKeyboardFocus.None
@@ -30,7 +30,7 @@ PanelWindow {
   property string layerNamespace: "omashell-panel"
   property bool opened: false
   property bool keyboard: false
-  // A PanelNav (or anything with takeFocus()); focused on open when keyboard.
+                                                                              
   property var focusTarget: null
   property real anchorX: -1
   property int cardWidth: 340
@@ -47,8 +47,8 @@ PanelWindow {
   readonly property var easeOut: [0.23, 1.0, 0.32, 1.0, 1.0, 1.0]
   readonly property real resolvedAnchorX: anchorX >= 0 ? anchorX : width - 100
 
-  // `data`, not `children`: a panel may declare non-visual children (animations,
-  // timers) at its root, and only `data` accepts those.
+                                                                                 
+                                                        
   default property alias content: contentColumn.data
 
   function duration(ms) {

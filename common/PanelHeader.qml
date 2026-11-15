@@ -1,14 +1,14 @@
 import QtQuick
 import qs.config
 
-// Panel header: icon, heading, an optional second line that rotates through
-// phrases, and an optional switch at the end. One reusable piece so every panel's
-// chrome matches without each panel rebuilding the same row.
-//
-// The rotating line is off unless `captions` has more than one entry; a single
-// `caption` string stays put. "Changing text" is the point here: a panel that does
-// something ongoing (scanning, connecting) says so, instead of the same static
-// subtitle every time.
+                                                                            
+                                                                                  
+                                                             
+  
+                                                                               
+                                                                                   
+                                                                               
+                       
 Item {
   id: root
 
@@ -18,16 +18,22 @@ Item {
   property string caption: ""
   property var captions: []
   property int captionInterval: 2800
-  // Rotation only while it makes sense to animate (panel open, radio on).
+                                                                          
   property bool rotating: true
 
-  // Built-in switch, for a panel whose header is also its on/off control.
+                                                                          
   property bool switchVisible: false
   property bool switchChecked: false
   property var panelNav: null
+                                                                         
+                                                        
+  property string switchOnTooltip: "Turn Bluetooth on"
+  property string switchOffTooltip: "Turn Bluetooth off"
+  property string switchNavigationKey: "bluetooth-switch"
+  property string switchNavGroup: ""
 
-  // Anything else at the end, after the switch.
-  default property alias trailing: trailingRow.children
+                                                
+  default property alias trailing: actionsRow.children
 
   property int captionIndex: 0
 
@@ -43,8 +49,8 @@ Item {
     titleColumn.implicitHeight,
     trailingRow.implicitHeight))
 
-  // Swap with a fade, not an instant text change: fade the line out, advance the
-  // index while it is invisible, fade it back in.
+                                                                                 
+                                                  
   Timer {
     interval: root.captionInterval
     running: root.rotatingNow
@@ -109,7 +115,7 @@ Item {
       text: root.title
       color: root.foreground
       font.family: Constants.fontFamily
-      // Matches the other side: title size, and bold rather than semibold.
+                                                                           
       font.pixelSize: Constants.fontTitle
       font.bold: true
       textFormat: Text.PlainText
@@ -122,8 +128,8 @@ Item {
 
       visible: root.captionText !== ""
       text: root.captionText.toUpperCase()
-      // Dim from the foreground, not a separate dim token, and bold + wider
-      // tracking - that is what makes the line read as a header, not a hint.
+                                                                            
+                                                                             
       color: Qt.darker(root.foreground, 1.4)
       font.family: Constants.fontFamily
       font.pixelSize: Constants.fontCaption
@@ -142,17 +148,24 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     spacing: Constants.gap
 
+    Row {
+      id: actionsRow
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: Constants.gap
+    }
+
     ToggleSwitch {
       visible: root.switchVisible
       checked: root.switchChecked
       foreground: root.foreground
       panelNav: root.panelNav
-      navigationKey: "bluetooth-switch"
+      navigationKey: root.switchNavigationKey
+      navGroup: root.switchNavGroup
       onToggled: root.switchToggled()
 
       PanelToolTip {
         visible: parent.containsMouse
-        text: parent.checked ? "Turn Bluetooth off" : "Turn Bluetooth on"
+        text: parent.checked ? root.switchOffTooltip : root.switchOnTooltip
         fontFamily: Constants.fontFamily
       }
     }

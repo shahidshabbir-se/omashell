@@ -48,10 +48,10 @@ QtObject {
     readonly property bool canToggleLoop: loopSupported && player.canControl
     readonly property bool loopActive: loopSupported && player.loopState !== MprisLoopState.None
 
-    // ---------- PipeWire Stream / Fallback Sink Resolution ----------
+                                                                       
     readonly property var pipewireNodes: Pipewire.nodes ? Pipewire.nodes.values : []
-    // Bind candidate playback nodes before reading PwNodeAudio.volume; that
-    // property is invalid until PwObjectTracker binds the node.
+                                                                            
+                                                                
     property PwObjectTracker pipewireNodeTracker: PwObjectTracker {
         objects: root.pipewireNodes.filter(node => node && node.isStream && node.isSink)
     }
@@ -63,7 +63,7 @@ QtObject {
         return !!(node && node.isStream && node.isSink);
     }
 
-    // Match a PipeWire playback stream node to the current MPRIS player
+                                                                        
     readonly property var matchedStreamNode: {
         if (!hasPlayer)
             return null;
@@ -93,9 +93,9 @@ QtObject {
         return null;
     }
 
-    // MPRIS does not expose volume for Chromium's player. The audio panel's
-    // PipeWire stream model is authoritative, so use its existing per-app
-    // stream volume and only fall back to MPRIS for players without a stream.
+                                                                            
+                                                                          
+                                                                              
     readonly property bool mprisVolumeAvailable: hasPlayer && player.volumeSupported
     readonly property var volumeStreamNode: matchedStreamNode && matchedStreamNode.audio && matchedStreamNode.bound ? matchedStreamNode : null
     readonly property real volumeMaximum: volumeStreamNode ? 1.5 : 1
@@ -138,13 +138,13 @@ QtObject {
         const val = Math.min(1, Math.max(0, normalizedVolume));
 
         if (volumeStreamNode) {
-            // Keep 150% headroom offered by the audio panel for stream nodes.
+                                                                              
             volumeStreamNode.audio.volume = Math.min(volumeMaximum, val);
             return;
         }
 
-        // Keep native MPRIS volume for players that expose it but have no
-        // corresponding PipeWire stream (e.g. non-audio/control-only players).
+                                                                          
+                                                                               
         if (mprisVolumeAvailable)
             player.volume = Math.min(1, val);
     }

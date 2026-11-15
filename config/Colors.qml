@@ -16,6 +16,10 @@ QtObject {
   readonly property color lightForeground: "#b4bee6"
   readonly property color brightForeground: "#c0caf5"
 
+  readonly property color tooltipBackground: Qt.rgba(background.r, background.g, background.b, 0.97)
+  readonly property color tooltipText: foreground
+  readonly property color tooltipBorder: foreground
+
   readonly property color red: "#f7768e"
   readonly property color yellow: "#e0af68"
   readonly property color orange: "#eb927b"

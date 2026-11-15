@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Launch omashell the same way for a human and for an agent, so nobody debugs a
-# difference that is only environment.
-#
-#   ./launch.sh              run the shell from this repo
-#   ./launch.sh --restart    replace a running instance of this repo
-#   ./launch.sh --echo       print what would run, then exit
-#
-# Everything the shell needs is resolved here:
-#   * HYPRLAND_INSTANCE_SIGNATURE, from `hyprctl -j instances` piped through jq.
-#     Writing it as `hyprctl -j instances J -r ...` (a typo for `| jq -r`) puts
-#     raw JSON in the variable, which silently gives the shell the wrong (or no)
-#     Hyprland instance, and surfaces then map at a different scale.
-#   * the qs binary: PATH first, then the nix store, because `qs` is not always
-#     on an agent's PATH.
-#
-# Quickshell imports the repo root as `qs`, so -p must be the absolute repo path.
+                                                                               
+                                      
+ 
+                                                         
+                                                                    
+                                                            
+ 
+                                              
+                                                                                
+                                                                               
+                                                                                
+                                                                    
+                                                                               
+                         
+ 
+                                                                                 
 
 set -euo pipefail
 
@@ -37,7 +37,7 @@ for arg in "$@"; do
   esac
 done
 
-# --- qs binary ---------------------------------------------------------------
+                                                                               
 qs_bin="$(command -v qs 2>/dev/null || true)"
 if [ -z "$qs_bin" ]; then
   qs_bin="$(find /nix/store -maxdepth 4 -path '*/bin/qs' -type f 2>/dev/null \
@@ -48,7 +48,7 @@ if [ -z "$qs_bin" ]; then
   exit 1
 fi
 
-# --- hyprland instance -------------------------------------------------------
+                                                                               
 if ! command -v hyprctl >/dev/null 2>&1; then
   printf 'launch.sh: hyprctl not found; is Hyprland running?\n' >&2
   exit 1
@@ -65,19 +65,19 @@ fi
 
 export HYPRLAND_INSTANCE_SIGNATURE="$signature"
 
-# --- restart ----------------------------------------------------------------
+                                                                              
 if [ "$restart" = 1 ]; then
-  # Match only this repo, never a bare `quickshell` (that pattern also matches the
-  # shell running the kill).
+                                                                                  
+                            
   pkill -f "$qs_bin -p $here" 2>/dev/null || true
 fi
 
-# --- portal app info -----------------------------------------------------------
-# Qt registers the app id "org.quickshell" with the host portal on startup. The
-# portal resolves app info from a desktop file whose id matches, so without one it
-# warns "App info not found for 'org.quickshell'" and skips the registration.
-# Installing a hidden desktop entry is the whole fix; it costs one file and makes
-# the warning go away instead of muting the log.
+                                                                                 
+                                                                               
+                                                                                  
+                                                                             
+                                                                                 
+                                                
 desktop_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 desktop_file="$desktop_dir/org.quickshell.desktop"
 

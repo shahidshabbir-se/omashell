@@ -1,9 +1,9 @@
 import QtQuick
 import qs.config
 
-// Single-line text entry in the panel's own look: a sunk field, our tokens, no
-// platform style. Editing is explicit - the panel's keyboard navigation focuses
-// it on activate(), Escape or Return hands control back.
+                                                                               
+                                                                                
+                                                         
 Item {
   id: root
 
@@ -15,6 +15,7 @@ Item {
 
   signal submitted(string text)
   signal editingFinished()
+  signal canceled()
 
   readonly property bool editing: input.activeFocus
 
@@ -73,6 +74,7 @@ Item {
       }
 
       Keys.onEscapePressed: {
+        root.canceled()
         root.editingFinished()
       }
     }

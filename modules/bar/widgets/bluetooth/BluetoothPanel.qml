@@ -6,9 +6,9 @@ import qs.common
 import qs.config
 import "Model.js" as Model
 
-// Floating Bluetooth popup containing the interactive Bluetooth panel. State comes
-// from Quickshell's Bluetooth objects, rows from Model.js, chrome from the shared
-// kit, and keys from PanelNav.
+                                                                                   
+                                                                                  
+                               
 PanelShell {
   id: root
 
@@ -50,12 +50,12 @@ PanelShell {
     root.enqueue("forget", row.address)
   }
 
-  // Same glyph logic as the bar button: off, connected, on.
+                                                            
   readonly property string icon: root.adapter === null ? ""
     : (!root.adapter.enabled ? "\uDB80\uDCB2"
       : (root.lists.connected.length > 0 ? "\uDB80\uDCB1" : "\uDB80\uDCAF"))
 
-  // address -> "Connecting…" and friends, so rows can show why they're busy.
+                                                                             
   property var pending: ({})
 
   readonly property string caption: root.adapter === null
@@ -74,7 +74,7 @@ PanelShell {
   onReadyChanged: Qt.callLater(nav.refresh)
   onDiscoveringChanged: Qt.callLater(nav.refresh)
 
-  // --- actions ----------------------------------------------------------------
+                                                                                 
 
   property var queue: []
   property var runningJob: null
@@ -91,7 +91,7 @@ PanelShell {
   function act(row) {
     if (!row || row.address === "") return
     var action = Model.actionFor(row)
-    // Match Omarchy's direct BlueZ disconnect request as well as its CLI helper.
+                                                                                 
     if (action === "disconnect") {
       var device = root.deviceForAddress(row.address)
       if (device && typeof device.disconnect === "function") device.disconnect()
@@ -157,15 +157,15 @@ PanelShell {
       var job = root.runningJob
       root.runningJob = null
       if (job) {
-        // Pair command includes trust + connect, matching the Omarchy helper.
-        // Pending UI is cleared by BlueZ state, not by process exit.
+                                                                              
+                                                                     
         root.syncPending()
       }
       root.startNext()
     }
   }
 
-  // --- layout -----------------------------------------------------------------
+                                                                                 
 
   Column {
     id: body
@@ -225,8 +225,8 @@ PanelShell {
         spacing: 10
 
         Repeater {
-        // Sections appear only when they have something to show; Available only
-        // while scanning, which is what makes its absence meaningful.
+                                                                                
+                                                                      
         model: root.ready ? [
           { key: "connected", title: "Connected", rows: root.lists.connected, show: root.lists.connected.length > 0 },
           { key: "known", title: "Paired", rows: root.lists.known, show: root.lists.known.length > 0 },

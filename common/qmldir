@@ -1,5 +1,6 @@
 module qs.common
 PanelShell 1.0 PanelShell.qml
+OverlayShell 1.0 OverlayShell.qml
 ArcText 1.0 ArcText.qml
 OpticalText 1.0 OpticalText.qml
 OpticalGlyph 1.0 OpticalGlyph.qml

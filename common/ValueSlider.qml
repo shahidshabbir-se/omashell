@@ -1,9 +1,9 @@
 import QtQuick
 import qs.config
 
-// Draggable, wheel- and keyboard-adjustable value track: a thin rail, an accent
-// fill and a knob. `adjust(±1)` is what the panel's keyboard navigation calls
-// while the cursor sits on it.
+                                                                                
+                                                                              
+                               
 Item {
   id: root
 

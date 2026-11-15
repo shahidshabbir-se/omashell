@@ -10,7 +10,7 @@ Item {
         pixelSize: 14
     })
 
-    // Marquee tuning
+                     
     property real speed: 32
     property real gap: 48
     property int startDelay: 1800
@@ -69,10 +69,10 @@ Item {
 
             anchors.verticalCenter: parent.verticalCenter
 
-            /*
-             * Centered when the text fits, left-anchored
-             * while it is marqueeing.
-             */
+              
+                                                         
+                                      
+               
             width: root.overflow ? implicitWidth : root.width
             horizontalAlignment: root.overflow ? Text.AlignLeft : Text.AlignHCenter
 
@@ -80,12 +80,12 @@ Item {
             wrapMode: Text.NoWrap
         }
 
-        /*
-         * Duplicate text makes the marquee seamless.
-         *
-         * While firstText exits on the left,
-         * secondText enters from the right.
-         */
+          
+                                                     
+          
+                                             
+                                            
+           
         Text {
             id: secondText
 
@@ -104,12 +104,12 @@ Item {
         }
     }
 
-    /*
-     * Continuous right -> left loop.
-     *
-     * The initial pass is held by startDelayTimer above so the
-     * beginning of the title or artist can be read before it moves.
-     */
+      
+                                     
+      
+                                                               
+                                                                    
+       
     SequentialAnimation {
         id: marquee
 
@@ -120,7 +120,7 @@ Item {
             target: track
             property: "x"
 
-            // RIGHT -> LEFT
+                            
             from: 0
             to: -root.loopDistance
 

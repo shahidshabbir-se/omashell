@@ -1,0 +1,8 @@
+module qs.modules.bar.widgets.network
+Network 1.0 Network.qml
+NetworkPanel 1.0 NetworkPanel.qml
+WifiSharePanel 1.0 WifiSharePanel.qml
+SpeedTestPanel 1.0 SpeedTestPanel.qml
+SpeedTestOverlay 1.0 SpeedTestOverlay.qml
+ActionIcon 1.0 ActionIcon.qml
+WifiRow 1.0 WifiRow.qml

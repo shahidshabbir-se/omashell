@@ -1,15 +1,17 @@
 import QtQuick
 import qs.config
 
-// Shared keyboard cursor for interactive panels. Navigation targets expose
-// `navigable`, `hasCursor`, `navigationKey`, and `activate()`; row-like targets
-// may also expose `adjust()` / `clearAction()`.
+                                                                           
+                                                                                
+                                                
 FocusScope {
   id: root
 
   property Item container: null
   property int index: 0
   property bool cursorActive: false
+                                                                        
+  property bool customNavigation: false
   property var items: []
 
   readonly property Item current: index >= 0 && index < items.length ? items[index] : null
@@ -19,6 +21,7 @@ FocusScope {
   signal deleteRequested()
   signal textRequested(string text)
   signal horizontalRequested(int direction)
+  signal moveRequested(int dx, int dy)
 
   focus: true
   Keys.priority: Keys.BeforeItem
@@ -35,8 +38,8 @@ FocusScope {
         return
       }
 
-      // Repeaters can own delegates outside their QObject child list; visit them
-      // explicitly so Bluetooth rows added during discovery enter navigation.
+                                                                                 
+                                                                              
       if (typeof item.itemAt === "function" && Number(item.count) > 0) {
         for (var n = 0; n < item.count; n++) walk(item.itemAt(n))
       }
@@ -58,8 +61,8 @@ FocusScope {
       list[i].hasCursor = root.cursorActive && i === root.index
   }
 
-  // Preserve the current logical target across Repeater rebuilds. Bluetooth rows
-  // key by address, so a device moving between sections does not steal the cursor.
+                                                                                 
+                                                                                   
   function refresh() {
     var oldKey = root.current && root.current.navigationKey ? root.current.navigationKey : ""
     var next = collect()
@@ -103,6 +106,7 @@ FocusScope {
   }
 
   function move(delta) {
+    if (root.customNavigation) { root.moveRequested(0, delta); return }
     if (!root.cursorActive) {
       root.cursorActive = true
       sync()
@@ -117,6 +121,7 @@ FocusScope {
   }
 
   function adjust(delta) {
+    if (root.customNavigation) { root.moveRequested(delta, 0); return }
     if (root.current && typeof root.current.adjust === "function") root.current.adjust(delta)
     else root.horizontalRequested(delta)
   }

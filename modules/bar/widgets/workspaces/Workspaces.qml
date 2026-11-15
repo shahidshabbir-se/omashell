@@ -41,9 +41,10 @@ Item {
     ? monitor.activeWorkspace.id
     : (activeWorkspace && activeWorkspace.id ? activeWorkspace.id : -1)
 
-  readonly property string activeMode: modeFromState === "floating"
-    ? "floating"
-    : (activeWorkspace && activeWorkspace.tiledLayout === "scrolling" ? "scrolling" : "dwindle")
+  readonly property string activeMode: modeFromState === "master" || modeFromState === "dwindle"
+    ? modeFromState
+    : (modeFromState === "floating" ? "floating"
+      : (activeWorkspace && activeWorkspace.tiledLayout === "master" ? "master" : "dwindle"))
 
   property var blocks: ({})
 
@@ -58,10 +59,10 @@ Item {
   }
 
   readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")
-  readonly property string modeFile: stateHome + "/omarchy/workspace-layouts/" + root.activeId + ".lua"
+  readonly property string modeFile: stateHome + "/omashell/workspace-layouts/" + root.activeId + ".mode"
 
   FileView {
-    path: root.stateHome + "/omarchy/monitors/workspaces"
+    path: root.stateHome + "/omashell/monitors/workspaces"
     watchChanges: true
     printErrors: false
     onFileChanged: reload()
@@ -121,7 +122,7 @@ Item {
   }
 
   function modeGlyph(mode) {
-    if (mode === "scrolling") return "\uDB81\uDF65"
+    if (mode === "master") return "\uDB81\uDF65"
     if (mode === "floating") return "\uDB81\uDD36"
     return "\uDB85\uDCFB"
   }
@@ -148,7 +149,7 @@ Item {
   }
 
   function focusWorkspace(id) {
-    root.runHyprctl(["dispatch", "hl.dsp.focus({ workspace = \"" + id + "\" })"])
+    root.runHyprctl(["dispatch", "workspace", String(id)])
   }
 
   property real wheelAccumulator: 0
@@ -174,7 +175,7 @@ Item {
   }
 
   function nextMode() {
-    if (root.activeMode === "dwindle") return "scrolling"
+    if (root.activeMode === "dwindle") return "master"
     return "dwindle"
   }
 
@@ -185,8 +186,7 @@ Item {
 
     var mode = root.nextMode()
     root.pendingLayoutMode = mode
-    var apply = "hl.workspace_rule({ workspace = \"" + root.activeId + "\", layout = \"" + mode + "\" })"
-    layoutApplyProc.command = ["bash", "-c", root.wrapperScript("h \"$@\""), "bash", "eval", apply]
+    layoutApplyProc.command = ["bash", "-c", root.wrapperScript("h keyword general:layout \"$1\""), "bash", mode]
     layoutApplyProc.running = true
   }
 
@@ -207,15 +207,15 @@ Item {
         + "id=$(h -j activeworkspace | jq -r '.id // empty'); "
         + "mode=\"\"; "
         + "if [ -n \"$id\" ]; then "
-        + "modes=\"${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/workspace-layouts\"; "
-        + "mode=$(sed -n 's/.*mode = \"\\([a-z]*\\)\".*/\\1/p' \"$modes/$id.lua\" 2>/dev/null); "
-        + "if [ -z \"$mode\" ] && [ -f \"$modes/default.lua\" ]; then "
-        + "mode=$(sed -n 's/.*default = \"\\([a-z]*\\)\".*/\\1/p' \"$modes/default.lua\"); "
+        + "modes=\"${XDG_STATE_HOME:-$HOME/.local/state}/omashell/workspace-layouts\"; "
+        + "mode=$(cat \"$modes/$id.mode\" 2>/dev/null || true); "
+        + "if [ -z \"$mode\" ] && [ -f \"$modes/default.mode\" ]; then "
+        + "mode=$(cat \"$modes/default.mode\"); "
         + "fi; fi; "
         + "printf '\\n__MODE__\\n%s\\n' \"$mode\"; "
         + "default=\"\"; "
-        + "modes=\"${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/workspace-layouts\"; "
-        + "default=$(sed -n 's/.*default = \"\\([a-z]*\\)\".*/\\1/p' \"$modes/default.lua\" 2>/dev/null); "
+        + "modes=\"${XDG_STATE_HOME:-$HOME/.local/state}/omashell/workspace-layouts\"; "
+        + "default=$(cat \"$modes/default.mode\" 2>/dev/null || true); "
         + "if [ -z \"$default\" ]; then default=$(h getoption general:layout -j | jq -r '.str // \"dwindle\"'); fi; "
         + "printf '__DEFAULT__\\n%s\\n' \"$default\"")
 
@@ -283,10 +283,10 @@ Item {
       }
 
       modeWriteProc.command = ["bash", "-c", root.wrapperScript(
-        "modes=\"${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/workspace-layouts\"; "
+        "modes=\"${XDG_STATE_HOME:-$HOME/.local/state}/omashell/workspace-layouts\"; "
           + "mkdir -p \"$modes\"; "
-          + "if [ \"$2\" = \"$3\" ]; then rm -f \"$modes/$1.lua\"; "
-          + "else printf 'o.workspace_mode({ workspace = \"%s\", mode = \"%s\" })\\n' \"$1\" \"$2\" > \"$modes/$1.lua\"; fi"),
+          + "if [ \"$2\" = \"$3\" ]; then rm -f \"$modes/$1.mode\"; "
+          + "else printf '%s\\n' \"$2\" > \"$modes/$1.mode\"; fi"),
         "bash", String(root.activeId), root.pendingLayoutMode, root.defaultMode]
       modeWriteProc.running = true
       root.toggleRefreshTimer.restart()
@@ -322,8 +322,8 @@ Item {
     function onRawEvent(event) { root.refreshSoon() }
   }
 
-  // Its grid spaces its own buttons, so padding around it would only read as a gap
-  // before the next widget. Omarchy's workspaces widget is padded the same way: not.
+                                                                                   
+                                                                                     
   readonly property real barSlotWidth: root.implicitWidth
 
   implicitWidth: grid.implicitWidth + 1.5
@@ -359,9 +359,9 @@ Item {
         height: Constants.barHeight
         opacity: occupied || shown ? 1 : 0.5
 
-        // A digit is text, so it goes through the figure-centred label. The active
-        // workspace shows a layout glyph instead, and a glyph has no figure metrics:
-        // it is fitted to the bar's icon size so every mode reads the same size.
+                                                                                   
+                                                                                     
+                                                                                 
         OpticalText {
           id: label
           visible: !workspaceButton.shown

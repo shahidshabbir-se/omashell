@@ -3,59 +3,44 @@ import QtQml
 import qs.config
 import qs.modules.bar
 
-// One bar section (left / center / right). Widgets are loaded from ids, never
-// instantiated by name, so the section has no per-widget knowledge.
+                                                                              
+                                                                    
 Row {
   id: root
 
-  // No gap between widgets: each slot carries its own padding (see slotWidth), which
-  // is how Omarchy spaces the bar. Row spacing adds to that and is therefore 0.
+                                                                                     
+                                                                                
   spacing: 0
 
-  // Fixed bar height. A Row top-aligns its children, and widgets have different
-  // heights (Clock is 12pt text, Weather and WorldClock are 21px icons), so each
-  // widget gets a slot of this height and is centred inside it instead.
+                                                                                
+                                                                                 
+                                                                        
   height: Constants.barHeight
 
-  // Ids from Config.bar.<section>. Repeater re-creates on change (hot reload).
+                                                                               
   property var ids: []
 
-  // Handed to widgets that declare a screen property (Workspaces resolves the
-  // monitor-specific workspace block through it).
+                                                                              
+                                                  
   property var screen: null
 
-  // Id of the widget whose popup is open; empty when none is. Drives the
-  // open-panel mark below, so widgets need no open/closed state of their own.
+                                                                         
+                                                                              
   property string activeId: ""
 
-  // centerX is local to this section; the bar maps it onto the panel.
+                                                                      
   signal activated(string id, real centerX)
 
-  // Hover text for the bar's tooltip; empty when nothing is hovered.
-  signal tooltipRequested(string text, real centerX)
+                                                                     
+  signal tooltipEntered(var slot, string text, real centerX)
+  signal tooltipLeft(var slot)
 
   property Item hoverSlot: null
 
-  // Hide at once, show only after the pointer has rested: a tooltip that appears
-  // on the way past is noise.
-  Timer {
-    id: hoverTimer
-    interval: Constants.tooltipDelay
-    onTriggered: {
-      var slot = root.hoverSlot
-      if (!slot || slot.tooltipText === "") return
-      root.tooltipRequested(slot.tooltipText, slot.x + slot.width / 2)
-    }
-  }
-
   function setHovered(slot) {
+    if (root.hoverSlot && root.hoverSlot !== slot) root.tooltipLeft(root.hoverSlot)
     root.hoverSlot = slot
-    hoverTimer.stop()
-    if (!slot || slot.tooltipText === "") {
-      root.tooltipRequested("", 0)
-      return
-    }
-    hoverTimer.restart()
+    if (slot) root.tooltipEntered(slot, slot.tooltipText, slot.x + slot.width / 2)
   }
 
   Repeater {
@@ -66,31 +51,33 @@ Row {
 
       readonly property string widgetId: modelData
 
-      // Same width as the widget, full bar height. The Loader anchors to this
-      // slot rather than to the Row: anchoring a child of a positioner is
-      // undefined behaviour, anchoring to a plain Item is not.
+                                                                              
+                                                                          
+                                                               
       readonly property real contentWidth: loader.implicitWidth
-      // A widget's footprint includes its own horizontal padding, so the air around
-      // it belongs to it rather than to the list. Icon widgets ask for a wider slot
-      // (Constants.iconSlot) and composite widgets can opt out by declaring their
-      // own barSlotWidth.
+                                                                                    
+                                                                                    
+                                                                                  
+                          
       readonly property real slotWidth: loader.item && loader.item.barSlotWidth !== undefined
         ? loader.item.barSlotWidth
         : slot.contentWidth + Constants.barWidgetPadding * 2
 
       width: slotWidth
       height: root.height
-      // An unknown id yields an empty source: status Null, so it takes no space.
+                                                                                 
       visible: loader.status === Loader.Ready
 
-      // Where this widget's open-panel mark belongs. A widget may name an item to
-      // track (an icon, rather than the slot around it) or just how wide the mark
-      // is; without a hint the mark underlines the content, never the padding.
-      // Same hint names Omarchy uses.
-      // Hover text the bar draws in its own tooltip surface.
+                                                                                  
+                                                                                  
+                                                                               
+                                      
+                                                             
       readonly property string tooltipText: loader.item && loader.item.tooltip !== undefined
         ? String(loader.item.tooltip)
         : ""
+      onTooltipTextChanged: if (root.hoverSlot === slot)
+        root.tooltipEntered(slot, slot.tooltipText, slot.x + slot.width / 2)
 
       readonly property Item markItem: loader.item && loader.item.openPanelIndicatorItem !== undefined
         ? loader.item.openPanelIndicatorItem
@@ -118,8 +105,8 @@ Row {
           restoreMode: Binding.RestoreNone
         }
 
-        // Identity and settings, the two things the Widget base declares. Injected
-        // like `screen`, so a widget that does not declare them is untouched.
+                                                                                   
+                                                                              
         Binding {
           target: loader.item
           property: "widgetId"
@@ -138,8 +125,8 @@ Row {
           restoreMode: Binding.RestoreNone
         }
 
-        // Bar widgets signal activation under their own names, so all three
-        // spellings are accepted. ignoreUnknownSignals keeps silent widgets quiet.
+                                                                            
+                                                                                   
         Connections {
           target: loader.item
           ignoreUnknownSignals: true
@@ -158,6 +145,8 @@ Row {
         }
       }
 
+      Component.onDestruction: if (root.hoverSlot === slot) root.setHovered(null)
+
       HoverHandler {
         onHoveredChanged: {
           if (hovered) root.setHovered(slot)
@@ -165,11 +154,11 @@ Row {
         }
       }
 
-      // Open-panel mark: a 2px accent pill on the edge facing the desktop, shown
-      // while this widget's popup is open. Text gets the full slot width; an icon
-      // reports its ink width, so the mark never looks wider than what it points
-      // at. One mark for every widget, so no widget carries hover or active
-      // styling of its own.
+                                                                                 
+                                                                                  
+                                                                                 
+                                                                            
+                            
       Rectangle {
         id: indicator
 

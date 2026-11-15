@@ -10,7 +10,8 @@
       "worldclock"
     ],
     "right": [
-      "bluetooth"
+      "bluetooth",
+      "network"
     ]
   }
 }

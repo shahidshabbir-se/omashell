@@ -7,20 +7,20 @@ Item {
 
     required property url artworkSource
     required property bool entranceReady
-    // The artwork wash is only for a panel that has something to show. With
-    // nothing playing the popup falls back to the flat surface color, which
-    // reads cleaner than a blurred placeholder disc. Paused counts as loaded:
-    // the artwork is still on screen, and pulling the wash out on pause would
-    // fight the pause itself.
+                                                                            
+                                                                            
+                                                                              
+                                                                              
+                              
     required property bool active
 
     readonly property color backgroundColor: Colors.background
 
-    // Driven by `active` alone, never by `entranceReady`. The popup window
-    // already fades and scales itself on `entrance.revealProgress`, and
-    // `entranceReady` re-arms on every open, so binding to it here made the
-    // wash sit at whatever the fade had not reached yet and read as flat.
-    // Not readonly: Behavior needs to write it.
+                                                                           
+                                                                        
+                                                                            
+                                                                          
+                                                
     property real artOpacity: active ? 1 : 0
 
     Behavior on artOpacity {
@@ -30,10 +30,10 @@ Item {
         }
     }
 
-    // No `z` here. The backdrop is a child of the popup's opaque shell
-    // Rectangle, and a negative z drops it behind that fill — which is how it
-    // ended up invisible and reading as a flat panel. It is already declared
-    // ahead of the content, so it paints first either way.
+                                                                       
+                                                                              
+                                                                             
+                                                           
 
     Rectangle {
         anchors.fill: parent
@@ -76,8 +76,8 @@ Item {
         opacity: root.artOpacity
     }
 
-    // Washes the artwork out toward the bottom of the panel, so the text and
-    // controls at the bottom always sit on a flat, legible surface.
+                                                                             
+                                                                    
     Rectangle {
         anchors.fill: parent
         opacity: root.artOpacity
