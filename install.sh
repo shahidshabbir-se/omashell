@@ -69,13 +69,56 @@ check_dependencies() {
     if command -v "$command_name" >/dev/null 2>&1; then printf '  required: %s ✓\n' "$command_name"; else printf '  required: %s MISSING\n' "$command_name"; missing=1; fi
   done
   if has_shell; then printf '  required: Quickshell ✓\n'; else printf '  required: qs/quickshell MISSING\n'; missing=1; fi
-  for command_name in hyprctl jq; do
+  for command_name in hyprctl jq wl-copy wl-paste; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  required: %s ✓\n' "$command_name"; else printf '  required: %s MISSING\n' "$command_name"; missing=1; fi
   done
-  for command_name in nmcli curl wpctl pactl cava upower powerprofilesctl bluetoothctl wl-copy qrencode ip xdg-open omasnap; do
+  for command_name in nmcli curl wpctl pactl cava upower powerprofilesctl bluetoothctl qrencode ip xdg-open; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  optional: %s ✓\n' "$command_name"; else printf '  optional: %s not found\n' "$command_name"; fi
   done
+
+  if command -v omasnap >/dev/null 2>&1 || { [[ -f $target/.omasnap-install ]] && [[ -x $target/bin/omasnap ]]; }; then
+    printf '  screenshot tool: omasnap ✓\n'
+  else
+    printf '  screenshot tool: omasnap will be built from its upstream release\n'
+    for command_name in curl tar cmake make c++ pkg-config wayland-scanner; do
+      if command -v "$command_name" >/dev/null 2>&1; then printf '  build requirement: %s ✓\n' "$command_name"; else printf '  build requirement: %s MISSING\n' "$command_name"; missing=1; fi
+    done
+    if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists Qt6Concurrent Qt6Core Qt6Gui Qt6Test Qt6Widgets wayland-client libdeflate; then
+      printf '  build libraries: Qt 6, Wayland, libdeflate ✓\n'
+    else
+      printf '  build libraries: Qt 6 (including Qt Test), Wayland, and libdeflate MISSING\n'
+      missing=1
+    fi
+    if command -v cmake >/dev/null 2>&1 && cmake --find-package -DNAME=LayerShellQt -DCOMPILER_ID=GNU -DLANGUAGE=CXX -DMODE=EXIST >/dev/null 2>&1; then
+      printf '  build library: LayerShellQt ✓\n'
+    else
+      printf '  build library: LayerShellQt MISSING\n'
+      missing=1
+    fi
+    if [[ -f /usr/share/wayland-protocols/staging/ext-image-copy-capture/ext-image-copy-capture-v1.xml ]]; then
+      printf '  protocol files: wayland-protocols ✓\n'
+    else
+      printf '  protocol files: wayland-protocols MISSING\n'
+      missing=1
+    fi
+  fi
   return "$missing"
+}
+
+build_omasnap() {
+  local destination="$1" work version jobs
+  work=$(mktemp -d "${TMPDIR:-/tmp}/omashell-omasnap-build.XXXXXX")
+  build_dirs+=("$work")
+  version=$(curl -fsSL https://api.github.com/repos/omacom/omasnap/releases/latest \
+    | jq -er '.tag_name | select(test("^v[0-9]+(\\.[0-9]+)+$"))')
+  printf 'Building Omasnap %s from source...\n' "$version"
+  mkdir -p "$work/source"
+  curl -fsSL "https://github.com/omacom/omasnap/archive/refs/tags/$version.tar.gz" \
+    | tar -xz --strip-components=1 -C "$work/source"
+  cmake -S "$work/source" -B "$work/build" -DCMAKE_BUILD_TYPE=Release -DOMASNAP_VERSION="${version#v}"
+  jobs=${BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN)}
+  cmake --build "$work/build" --target omasnap --parallel "$jobs"
+  install -m755 "$work/build/omasnap" "$destination"
 }
 
 if [[ $check_only == true ]]; then
@@ -94,6 +137,7 @@ if [[ $uninstall == true ]]; then
     systemctl --user daemon-reload >/dev/null 2>&1 || true
   fi
   if [[ -L $link && $(readlink -- "$link") == "$target/bin/omashell" ]]; then rm -- "$link"; fi
+  if [[ -L $bin_home/omasnap && $(readlink -- "$bin_home/omasnap") == "$target/bin/omasnap" ]]; then rm -- "$bin_home/omasnap"; fi
   rm -rf -- "$target"
   printf 'Removed Omashell from %s; user config and state were left untouched.\n' "$target"
   exit 0
@@ -151,15 +195,35 @@ if [[ -L $link && $(readlink -- "$link") != "$target/bin/omashell" ]]; then
   exit 1
 fi
 
+if { [[ -f $target/.omasnap-install ]] && [[ -x $target/bin/omasnap ]]; } || ! command -v omasnap >/dev/null 2>&1; then
+  if [[ -e $bin_home/omasnap && ! -L $bin_home/omasnap ]]; then
+    printf 'install.sh: refusing to replace existing file %s\n' "$bin_home/omasnap" >&2
+    exit 1
+  fi
+  if [[ -L $bin_home/omasnap && $(readlink -- "$bin_home/omasnap") != "$target/bin/omasnap" ]]; then
+    printf 'install.sh: %s is already a symlink to another Omasnap; remove it or install Omasnap separately.\n' "$bin_home/omasnap" >&2
+    exit 1
+  fi
+fi
+
 mkdir -p -- "$parent" "$bin_home"
 stage=$(mktemp -d "$parent/.omashell-stage.XXXXXX")
 backup=''
+build_dirs=()
 cleanup() {
   if [[ -n $stage ]]; then rm -rf -- "$stage"; fi
   if [[ -n $backup && -d $backup && ! -e $target ]]; then mv -- "$backup" "$target"; fi
+  for build_dir in "${build_dirs[@]}"; do rm -rf -- "$build_dir"; done
 }
 trap cleanup EXIT
 cp -a -- "$here/assets" "$here/common" "$here/config" "$here/modules" "$here/bin" "$here/shell.qml" "$stage/"
+if [[ -f $target/.omasnap-install && -x $target/bin/omasnap ]]; then
+  install -m755 "$target/bin/omasnap" "$stage/bin/omasnap"
+  printf '%s\n' 'omashell-managed-omasnap-v1' > "$stage/.omasnap-install"
+elif ! command -v omasnap >/dev/null 2>&1; then
+  build_omasnap "$stage/bin/omasnap"
+  printf '%s\n' 'omashell-managed-omasnap-v1' > "$stage/.omasnap-install"
+fi
 printf '%s\n' 'omashell-user-install-v1' > "$stage/.omashell-install"
 
 if [[ -e $target ]]; then
@@ -169,6 +233,9 @@ fi
 mv -- "$stage" "$target"
 stage=''
 ln -sfn -- "$target/bin/omashell" "$link"
+if [[ -f $target/.omasnap-install && -x $target/bin/omasnap ]]; then
+  ln -sfn -- "$target/bin/omasnap" "$bin_home/omasnap"
+fi
 if [[ -n $backup ]]; then rm -rf -- "$backup"; backup=''; fi
 
 if [[ $enable_service == true ]]; then

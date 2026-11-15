@@ -22,11 +22,13 @@
   qrencode,
   iproute2,
   xdg-utils,
+  omasnap,
 }:
 let
   runtimePackages = [
     quickshell
     hyprland
+    omasnap
     jq
     gawk
     bash
@@ -56,12 +58,16 @@ stdenvNoCC.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -d "$out/share/omashell" "$out/bin"
+    install -d "$out/share/omashell/bin" "$out/bin"
     cp -a assets common config modules shell.qml "$out/share/omashell/"
-    install -m755 bin/omashell bin/omashell-open-screenshot bin/omashell-screenshot "$out/bin/"
+    install -m755 bin/omashell "$out/bin/omashell"
+    install -m755 bin/omashell-open-screenshot bin/omashell-screenshot "$out/share/omashell/bin/"
+    ln -s "${omasnap}/bin/omasnap" "$out/bin/omasnap"
+    ln -s ../share/omashell/bin/omashell-open-screenshot "$out/bin/omashell-open-screenshot"
+    ln -s ../share/omashell/bin/omashell-screenshot "$out/bin/omashell-screenshot"
     wrapProgram "$out/bin/omashell" \
       --prefix PATH : "${lib.makeBinPath runtimePackages}" \
-      --set OMASHELL_ROOT "$out" \
+      --set OMASHELL_ROOT "$out/share/omashell" \
       --set TZDIR "${tzdata}/share/zoneinfo" \
       --set PYTHONTZPATH "${tzdata}/share/zoneinfo"
     runHook postInstall

@@ -4,7 +4,7 @@ Omashell runs on Linux with Wayland and Hyprland. It is a Quickshell configurati
 
 ## User install (non-Nix)
 
-Install Quickshell, Hyprland, `jq`, and Python 3 with your distribution's package manager. Then, from a checkout:
+Install Quickshell, Hyprland, `jq`, Python 3, and the Omasnap build dependencies with your distribution's package manager. Omasnap requires CMake, Make, a C++23 compiler, `pkg-config`, `wayland-scanner`, Qt 6.8 development packages (including Qt Test), LayerShellQt, Wayland development files and protocols, and libdeflate. The installer also uses `curl`, `jq`, and `tar` to fetch its latest release source. If `omasnap` is already on `PATH`, the installer reuses it and does not need the Omasnap build dependencies. Then, from a checkout:
 
 ```sh
 ./install.sh --check
@@ -13,7 +13,7 @@ Install Quickshell, Hyprland, `jq`, and Python 3 with your distribution's packag
 
 This copies the shell to `${XDG_DATA_HOME:-~/.local/share}/omashell` and creates `~/.local/bin/omashell`. Add `~/.local/bin` to `PATH` if needed. To update, pull the checkout and rerun `./install.sh`. To uninstall, run `./install.sh --uninstall`; user settings and runtime state are preserved.
 
-Optional widgets need additional system tools. The dependency check lists them. Network features need NetworkManager (`nmcli`); the QR share action additionally needs `qrencode` and `ip`. Audio controls need PipeWire/WirePlumber (`wpctl`) and `pactl`; the visualizer needs `cava`; battery information uses UPower; profile controls use `powerprofilesctl`; Bluetooth controls use `bluetoothctl`; weather and city search need `curl`. Screenshot capture uses standalone `omasnap` when installed; it is not bundled or required by Omashell.
+Optional widgets need additional system tools. The dependency check lists them. Network features need NetworkManager (`nmcli`); the QR share action additionally needs `qrencode` and `ip`. Audio controls need PipeWire/WirePlumber (`wpctl`) and `pactl`; the visualizer needs `cava`; battery information uses UPower; profile controls use `powerprofilesctl`; Bluetooth controls use `bluetoothctl`; weather and city search need `curl`. Screenshot capture uses Omasnap: the installer builds the latest Omasnap release into its managed user install when no `omasnap` command is already available.
 
 To have the installer create and enable a user service:
 
@@ -55,7 +55,7 @@ Or import `inputs.omashell.homeManagerModules.default` into a standalone Home Ma
 
 The flake also exposes `packages.<system>.default` and supports `x86_64-linux` and `aarch64-linux`. Quickshell and Omashell's helper executables are included in the package runtime environment. Nix installs the shell under the store; do not edit that copy. Use the Home Manager settings option or the XDG config override instead.
 
-The Nix package provides command-line clients, not system daemons. Enable/configure NetworkManager, PipeWire/WirePlumber, UPower, Bluetooth, and Hyprland in the NixOS configuration when those features are wanted.
+The Nix package includes Omasnap and the Omashell screenshot clients; it provides command-line clients, not system daemons. Enable/configure NetworkManager, PipeWire/WirePlumber, UPower, Bluetooth, and Hyprland in the NixOS configuration when those features are wanted.
 
 ## Screenshot helpers
 
@@ -63,6 +63,7 @@ The Nix package provides command-line clients, not system daemons. Enable/config
 omashell-screenshot [smart|region|windows|fullscreen|scroll] [copy|save]
 omashell-open-screenshot [image]
 omashell-open-screenshot --edit [image]
+omasnap [--capture-region|--capture-window|--capture-fullscreen|--scroll]
 ```
 
-The opener selects the newest image from `OMASNAP_SCREENSHOT_DIR` or `~/Pictures/Screenshots` when no path is supplied. `--edit` requires `omasnap`; viewing uses `xdg-open`.
+The opener selects the newest image from `OMASNAP_SCREENSHOT_DIR` or `~/Pictures/Screenshots` when no path is supplied. `--edit` opens it in Omasnap; viewing uses `xdg-open`.

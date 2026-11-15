@@ -74,7 +74,7 @@ in
         RestartSec = "3s";
         Environment = [
           "QT_QPA_PLATFORM=wayland"
-          "OMASHELL_ROOT=${cfg.package}"
+          "OMASHELL_ROOT=${cfg.package}/share/omashell"
         ] ++ cfg.systemd.extraEnvironment;
         Slice = "session.slice";
       };
