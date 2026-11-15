@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-labelledby="title">
-  <title id="title">Omashell OS monogram</title>
-  <path fill="#A9E85D" fill-rule="evenodd" d="M14 4h30v30L34 44H4V14Zm2.5 6L10 16.5V38h21.5l6.5-6.5V10Z"/>
-  <path fill="#A9E85D" d="M20 14h20v5H22l-2 2 1 1h9l5 5v3l-5 5H13l5-5h10l2-2-1-1h-9l-5-5v-3Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-labelledby="title">
+  <title id="title">Omashell</title>
+  <g fill="#8389A5">
+    <path d="M4 1H12L11 2H4.414L2 4.414V14H11.586L14 11.586V5L15 4V12L12 15H1V4Z"/>
+    <path d="M6 4H10L9 5H6.414L5 6.414V11H9.586L11 9.586V7L12 6V10L10 12H4V6Z" transform="rotate(180 8 8)"/>
+  </g>
 </svg>

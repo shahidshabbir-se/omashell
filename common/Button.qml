@@ -11,6 +11,7 @@ Item {
   property var panelNav: null
   property bool navigable: true
   property bool hasCursor: false
+  property string navigationKey: ""
   property bool accented: false
   property bool outlined: false
   property bool selected: false

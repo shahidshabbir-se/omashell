@@ -1,0 +1,7 @@
+module qs.modules.notifications
+singleton NotificationService 1.0 NotificationService.qml
+Notifications 1.0 Notifications.qml
+NotificationsPanel 1.0 NotificationsPanel.qml
+Toast 1.0 Toast.qml
+ToastDeck 1.0 ToastDeck.qml
+DeedButton 1.0 DeedButton.qml

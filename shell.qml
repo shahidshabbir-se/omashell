@@ -8,6 +8,7 @@ import qs.modules.bar.widgets.bluetooth
 import qs.modules.bar.widgets.network
 import qs.modules.bar.widgets.audio
 import qs.modules.bar.widgets.power
+import qs.modules.notifications
 import qs.modules.visualizer
 import qs.config
 
@@ -23,7 +24,8 @@ ShellRoot {
     bluetooth: bluetoothPanel,
     network: networkPanel,
     audio: audioPanel,
-    power: powerPanel
+    power: powerPanel,
+    notifications: notificationsPanel
   })
 
   function closeOverlays() {
@@ -40,6 +42,7 @@ ShellRoot {
     networkPanel.close()
     audioPanel.close()
     powerPanel.close()
+    notificationsPanel.close()
   }
 
   function showPanel(target, x) {
@@ -52,6 +55,7 @@ ShellRoot {
     if (target !== networkPanel) networkPanel.close()
     if (target !== audioPanel) audioPanel.close()
     if (target !== powerPanel) powerPanel.close()
+    if (target !== notificationsPanel) notificationsPanel.close()
     target.anchorX = x
     target.toggle()
   }
@@ -119,9 +123,14 @@ ShellRoot {
     id: powerPanel
     onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("power", direction) }
   }
+  NotificationsPanel {
+    id: notificationsPanel
+    onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("notifications", direction) }
+  }
   WifiSharePanel { id: wifiSharePanel }
   SpeedTestPanel { id: speedTestPanel }
   Visualizer {}
+  ToastDeck {}
 
   IpcHandler {
     target: "omashell"
@@ -133,6 +142,13 @@ ShellRoot {
     function toggleNetwork(): void { shell.showPanel(networkPanel, -1) }
     function toggleAudio(): void { shell.showPanel(audioPanel, -1) }
     function togglePower(): void { shell.showPanel(powerPanel, -1) }
+    function toggleNotifications(): void { shell.showPanel(notificationsPanel, -1) }
+    function toggleDoNotDisturb(): void { NotificationService.toggleDnd() }
+    function clearNotifications(): void { NotificationService.clear() }
+    function dismissAllNotifications(): void { NotificationService.dismissAll() }
+    function notificationsState(): string {
+      return JSON.stringify({ live: NotificationService.live.length, history: NotificationService.history.length, dnd: NotificationService.dnd })
+    }
     function toggleBatteryPercentage(): void { PowerService.togglePercentage() }
     function toggleWifiShare(): void {
       if (wifiSharePanel.opened) wifiSharePanel.close()
