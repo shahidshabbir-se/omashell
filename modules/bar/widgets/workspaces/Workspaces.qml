@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import qs.common
 import qs.config
+import 'Model.js' as Model
 
 Item {
   id: root
@@ -137,19 +138,28 @@ Item {
   property var dispatchQueue: []
 
   function runHyprctl(args) {
-    root.dispatchQueue.push(args)
+    root.dispatchQueue.push({ args: args, workspaceId: 0 })
     if (!dispatchProc.running) root.startNextDispatch()
   }
 
   function startNextDispatch() {
     if (root.dispatchQueue.length === 0) return
-    var args = root.dispatchQueue.shift()
-    dispatchProc.command = ["bash", "-c", root.wrapperScript("h \"$@\""), "bash"].concat(args)
+    var job = root.dispatchQueue.shift()
+    if (job.workspaceId > 0) {
+      var script = root.wrapperScript(
+        "if h dispatch \"$1\" >/dev/null 2>&1; then exit 0; fi; h dispatch workspace \"$2\"")
+      dispatchProc.command = ["bash", "-c", script, "bash", job.args[1], String(job.workspaceId)]
+    } else {
+      dispatchProc.command = ["bash", "-c", root.wrapperScript("h \"$@\""), "bash"].concat(job.args)
+    }
     dispatchProc.running = true
   }
 
   function focusWorkspace(id) {
-    root.runHyprctl(["dispatch", "workspace", String(id)])
+    var command = Model.focusDispatchArgs(id)
+    if (command.length === 0) return
+    root.dispatchQueue.push({ args: command, workspaceId: Number(id) })
+    if (!dispatchProc.running) root.startNextDispatch()
   }
 
   property real wheelAccumulator: 0
