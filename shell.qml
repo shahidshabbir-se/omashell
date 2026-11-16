@@ -67,7 +67,7 @@ ShellRoot {
   }
 
   function switchPanelFrom(id, direction) {
-    var configured = Config.bar.left.concat(Config.bar.center).concat(Config.bar.right)
+    var configured = Config.bar.left.concat(Config.bar.centerBegin, Config.bar.center, Config.bar.centerEnd, Config.bar.right)
     var ids = []
     for (var i = 0; i < configured.length; i++)
       if (panelFor[configured[i]] && (configured[i] !== "power" || PowerService.present) && ids.indexOf(configured[i]) < 0) ids.push(configured[i])

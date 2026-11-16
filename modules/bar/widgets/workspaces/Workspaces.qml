@@ -11,6 +11,8 @@ Item {
   id: root
 
   property var screen: null
+  property var bar: null
+  readonly property bool vertical: root.bar ? root.bar.vertical === true : false
 
   readonly property int slots: 10
 
@@ -177,11 +179,9 @@ Item {
     root.wheelAccumulator = wheel.remainder
     if (wheel.steps === 0) return
 
-    var ids = root.workspaceIds()
-    var index = ids.indexOf(root.activeId)
-    if (index === -1) return
-    var target = ids[Math.max(0, Math.min(ids.length - 1, index - wheel.steps))]
-    if (target !== ids[index]) root.focusWorkspace(target)
+    var target = Model.scrollTarget(root.workspaceIds(), root.activeId, wheel.steps)
+    if (target === null || target === root.activeId) return
+    root.focusWorkspace(target)
   }
 
   function nextMode() {
@@ -334,18 +334,20 @@ Item {
 
                                                                                    
                                                                                      
+  readonly property var slotMetrics: Model.slotMetrics(root.vertical, Constants.barHeight)
   readonly property real barSlotWidth: root.implicitWidth
+  readonly property real barSlotHeight: root.implicitHeight
 
-  implicitWidth: grid.implicitWidth + 1.5
+  implicitWidth: root.vertical ? Constants.barHeight : grid.implicitWidth + root.slotMetrics.trailingGap
   implicitHeight: grid.implicitHeight
 
   GridLayout {
     id: grid
     anchors.fill: parent
-    anchors.rightMargin: 1.5
-    columns: root.workspaceIds().length
-    columnSpacing: 1
-    rowSpacing: 0
+    anchors.rightMargin: root.vertical ? 0 : root.slotMetrics.trailingGap
+    columns: root.vertical ? 1 : root.workspaceIds().length
+    columnSpacing: root.vertical ? 0 : root.slotMetrics.spacing
+    rowSpacing: root.vertical ? root.slotMetrics.spacing : 0
 
     Repeater {
       model: root.workspaceIds()
@@ -364,9 +366,12 @@ Item {
           && index > 0
           && root.blockOf(root.workspaceIds()[index - 1]) === root.block
 
-        Layout.leftMargin: firstGuest ? 6 : 0
-        width: 20
-        height: Constants.barHeight
+        Layout.leftMargin: firstGuest && !root.vertical ? Model.GUEST_GAP : 0
+        Layout.topMargin: firstGuest && root.vertical ? Model.GUEST_GAP : 0
+        Layout.preferredWidth: root.slotMetrics.width
+        Layout.preferredHeight: root.slotMetrics.height
+        width: root.slotMetrics.width
+        height: root.slotMetrics.height
         opacity: occupied || shown ? 1 : 0.5
 
                                                                                    

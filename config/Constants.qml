@@ -41,6 +41,9 @@ QtObject {
   readonly property int statusSlot: 21
                                                        
   readonly property int barSectionMargin: 8
+  readonly property int widgetDragThreshold: 4
+  readonly property int widgetRemoveDistance: 48
+  readonly property int barMoveHoldDuration: 200
 
   readonly property int cellWidth: 52
   readonly property int cellHeight: 34

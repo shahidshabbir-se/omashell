@@ -13,6 +13,7 @@ QtObject {
 
   readonly property var widgets: ({
     logo: Qt.resolvedUrl("widgets/logo/Logo.qml"),
+    indicators: Qt.resolvedUrl("widgets/indicators/Indicators.qml"),
     notifications: Qt.resolvedUrl("../notifications/Notifications.qml"),
     workspaces: Qt.resolvedUrl("widgets/workspaces/Workspaces.qml"),
     clock: Qt.resolvedUrl("widgets/clock/Clock.qml"),

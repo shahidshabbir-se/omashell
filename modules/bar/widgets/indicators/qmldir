@@ -1,0 +1,4 @@
+module qs.modules.bar.widgets.indicators
+singleton StayAwakeService 1.0 StayAwakeService.qml
+IndicatorButton 1.0 IndicatorButton.qml
+Indicators 1.0 Indicators.qml

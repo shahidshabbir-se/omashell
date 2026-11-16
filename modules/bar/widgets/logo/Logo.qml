@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 import qs.common
 import qs.config
 
@@ -19,10 +18,5 @@ Widget {
     sourceSize.height: 96
     fillMode: Image.PreserveAspectFit
     smooth: true
-    layer.enabled: true
-    layer.effect: MultiEffect {
-      colorization: 1
-      colorizationColor: Colors.foreground
-    }
   }
 }

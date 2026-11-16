@@ -1,17 +1,28 @@
 {
   "version": 1,
   "bar": {
+    "position": "top",
     "left": [
       "logo",
       "workspaces"
     ],
+    "centerBegin": [
+      {
+        "id": "indicators",
+        "items": [
+          "Dnd",
+          "StayAwake"
+        ]
+      }
+    ],
     "center": [
-      "clock",
+      "clock"
+    ],
+    "centerEnd": [
       "worldclock",
       "weather"
     ],
     "right": [
-      "notifications",
       "bluetooth",
       "network",
       "audio",
