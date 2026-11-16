@@ -29,6 +29,7 @@ Widget {
 
   implicitWidth: label.implicitWidth
   implicitHeight: label.implicitHeight
+  readonly property real openPanelIndicatorWidth: label.implicitWidth
 
   function isoWeekNumber(date) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))

@@ -2,6 +2,7 @@ import QtQuick
 import QtQml
 import qs.config
 import qs.modules.bar
+import "BarSectionModel.js" as BarSectionModel
 
                                                                               
                                                                     
@@ -93,13 +94,15 @@ Row {
       readonly property Item markItem: loader.item && loader.item.openPanelIndicatorItem !== undefined
         ? loader.item.openPanelIndicatorItem
         : null
-      readonly property real markWidth: markItem
-        ? markItem.width
-        : (loader.item && loader.item.openPanelIndicatorWidth !== undefined
-            ? loader.item.openPanelIndicatorWidth
-            : slot.contentWidth)
+      readonly property real markWidth: BarSectionModel.indicatorWidth(
+        slot.width,
+        markItem ? markItem.width : 0,
+        loader.item && loader.item.openPanelIndicatorWidth !== undefined
+          ? Number(loader.item.openPanelIndicatorWidth)
+          : 0,
+        Constants.indicatorMinimumWidth)
       readonly property real markCenterX: markItem
-        ? markItem.mapToItem(slot, markItem.width / 2, 0).x
+        ? markItem.mapToItem(slot, markItem.width / 2, markItem.height / 2).x
         : slot.width / 2
 
       Loader {

@@ -26,6 +26,7 @@ QtObject {
                                                                       
   readonly property int indicatorThickness: 2
   readonly property int indicatorInset: 2
+  readonly property int indicatorMinimumWidth: 10
 
                                               
   readonly property int tooltipDelay: 400

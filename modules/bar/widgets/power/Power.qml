@@ -12,7 +12,6 @@ Item {
     ? PowerService.mode + ' · ' + Math.round(PowerService.fraction * 100) + '%'
     : ''
   readonly property real barSlotWidth: PowerService.showPercentage ? Constants.iconSlot * 2 : Constants.iconSlot
-  readonly property real openPanelIndicatorWidth: glyph.paintedWidth
   signal activated()
 
   readonly property bool available: PowerService.present

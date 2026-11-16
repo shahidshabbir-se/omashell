@@ -25,7 +25,6 @@ Widget {
   signal activated()
 
                                                                                   
-  readonly property real openPanelIndicatorWidth: glyphItem.paintedWidth
                                                                   
   property real slotWidth: Constants.iconSlot
   readonly property real barSlotWidth: slotWidth

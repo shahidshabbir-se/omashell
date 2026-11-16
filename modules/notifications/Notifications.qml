@@ -19,7 +19,6 @@ Item {
     ? (NotificationService.dnd ? 'Do not disturb' : NotificationService.live.length + ' unread')
     : ''
   readonly property real barSlotWidth: Constants.iconSlot
-  readonly property real openPanelIndicatorWidth: glyphItem.paintedWidth
   signal activated()
 
   implicitWidth: 21

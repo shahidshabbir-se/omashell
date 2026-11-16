@@ -11,7 +11,6 @@ Item {
   readonly property string tooltip: settings && settings.showTooltip === true
     ? (AudioService.outputMuted ? 'Muted' : Math.round(AudioService.outputVolume * 100) + '%') : ''
   readonly property real barSlotWidth: Constants.iconSlot
-  readonly property real openPanelIndicatorWidth: glyph.paintedWidth
   property real wheelRemainder: 0
   signal activated()
   implicitWidth: 21
