@@ -164,7 +164,7 @@ PanelShell {
 
   Text {
     visible: WeatherService.current === null
-    text: "Fetching forecast\u2026"
+    text: WeatherService.failed ? "Unable to fetch forecast" : "Fetching forecast\u2026"
     textFormat: Text.PlainText
     color: Qt.darker(Colors.foreground, 1.5)
     font.family: Constants.fontFamily

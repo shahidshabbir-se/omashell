@@ -11,6 +11,7 @@ QtObject {
   property var report: null
   property bool loading: false
   property bool failed: false
+  property bool fallbackStarted: false
   property double updatedAtMs: 0
 
   readonly property var current: report && report.current ? report.current : null
@@ -95,15 +96,75 @@ QtObject {
         + "&longitude=" + place.longitude
         + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day"
         + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
-        + "&forecast_days=4&timezone=auto"]
+        + "&timezone=auto"]
     forecastProc.running = true
   }
 
+  function startFallback() {
+    if (fallbackStarted) return
+    fallbackStarted = true
+    if (!place) {
+      fail()
+      return
+    }
+    fallbackProc.command = ["curl", "-fsS", "--max-time", "15",
+      "https://wttr.in/" + encodeURIComponent(String(place.latitude) + "," + String(place.longitude)) + "?format=j1"]
+    fallbackProc.running = true
+  }
+
+  function wttrCode(code) {
+    var c = Number(code)
+    if (c === 113) return 0
+    if (c === 116) return 2
+    if (c === 119 || c === 122) return 3
+    if (c === 143 || c === 248 || c === 260) return 45
+    if (c === 200 || c === 386 || c === 389 || c === 392 || c === 395) return 95
+    if (c === 179 || c === 182 || c === 185 || c === 227 || c === 230 ||
+        (c >= 317 && c <= 338) || c === 350 || (c >= 368 && c <= 377)) return 71
+    if (c === 176 || (c >= 263 && c <= 296)) return 61
+    if (c >= 299 && c <= 365) return 63
+    return 3
+  }
+
+  function parseWttr(parsed) {
+    if (!parsed.current_condition || !parsed.current_condition[0] || !Array.isArray(parsed.weather))
+      throw new Error("Invalid wttr.in response")
+    var condition = parsed.current_condition[0]
+    if (condition.temp_C === undefined || !isFinite(Number(condition.temp_C)))
+      throw new Error("Missing wttr.in temperature")
+    var daily = { time: [], weather_code: [], temperature_2m_max: [], temperature_2m_min: [] }
+    for (var i = 0; i < parsed.weather.length; i++) {
+      var day = parsed.weather[i]
+      var hourly = day.hourly || []
+      var nearest = null
+      for (var j = 0; j < hourly.length; j++) {
+        if (!nearest || Math.abs(Number(hourly[j].time) - 1200) < Math.abs(Number(nearest.time) - 1200))
+          nearest = hourly[j]
+      }
+      daily.time.push(day.date)
+      daily.weather_code.push(wttrCode(nearest ? nearest.weatherCode : 0))
+      daily.temperature_2m_max.push(day.maxtempC)
+      daily.temperature_2m_min.push(day.mintempC)
+    }
+    return {
+      current: {
+        temperature_2m: condition.temp_C,
+        apparent_temperature: condition.FeelsLikeC,
+        relative_humidity_2m: condition.humidity,
+        wind_speed_10m: condition.windspeedKmph,
+        weather_code: wttrCode(condition.weatherCode),
+        is_day: 1
+      },
+      daily: daily
+    }
+  }
+
   function refresh() {
-    if (geocodeProc.running || ipLookupProc.running || forecastProc.running) return
+    if (geocodeProc.running || ipLookupProc.running || forecastProc.running || fallbackProc.running) return
 
     loading = true
     failed = false
+    fallbackStarted = false
 
     if (location === "") {
       ipLookupProc.running = true
@@ -210,14 +271,33 @@ QtObject {
       waitForEnd: true
 
       onStreamFinished: {
-        var raw = String(text || "").trim()
-        if (raw === "") {
-          root.fail()
-          return
-        }
-
         try {
-          root.report = JSON.parse(raw)
+          var parsed = JSON.parse(String(text || ""))
+          if (!parsed.current || parsed.current.temperature_2m === undefined)
+            throw new Error("Invalid Open-Meteo response")
+          root.report = parsed
+          root.loading = false
+          root.failed = false
+          root.updatedAtMs = Date.now()
+        } catch (e) {
+          root.startFallback()
+        }
+      }
+    }
+
+    onExited: function(exitCode) {
+      if (exitCode !== 0) root.startFallback()
+    }
+  }
+
+  property Process fallbackProc: Process {
+    id: fallbackProc
+
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        try {
+          root.report = root.parseWttr(JSON.parse(String(text || "")))
           root.loading = false
           root.failed = false
           root.updatedAtMs = Date.now()
