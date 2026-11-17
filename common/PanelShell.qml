@@ -6,6 +6,10 @@ import qs.config
 PanelWindow {
   id: root
 
+  // Closed full-screen surfaces still cost compositor work even when their
+  // contents are transparent. Keep the window mapped through the exit fade.
+  visible: root.opened || card.opacity > 0
+
   anchors.top: true
   anchors.right: true
   anchors.bottom: true
