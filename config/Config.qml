@@ -30,7 +30,7 @@ QtObject {
       centerBegin: ["indicators"],
       center: ["clock"],
       centerEnd: ["worldclock", "weather"],
-      right: ["bluetooth", "network", "audio", "power"]
+      right: ["music", "bluetooth", "network", "audio", "power"]
     }
   })
 

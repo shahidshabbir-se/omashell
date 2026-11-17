@@ -1,4 +1,5 @@
-module qs.modules.bar.music
+module qs.modules.bar.widgets.music
+singleton MusicStyle 1.0 MusicStyle.qml
 singleton MusicRuntime 1.0 MusicRuntime.qml
 MarqueeText 1.0 MarqueeText.qml
 MprisPlaybackSession 1.0 MprisPlaybackSession.qml

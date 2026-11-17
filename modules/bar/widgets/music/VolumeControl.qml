@@ -1,29 +1,24 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../../../config"
-import "../audio"
+import qs.common
+import qs.config
 
 RowLayout {
-    id: root
+  id: root
+  required property var playback
+  spacing: MusicStyle.spacingLg
 
-    required property var playback
-
-    spacing: Constants.spacingLg
-
-    readonly property real maximumVolume: root.playback.volumeMaximum || 1
-
-    Text {
-        text: "󰕾"
-        font.family: Constants.fontFamily
-        font.pixelSize: Constants.iconSizeLg
-        color: Colors.accent
-    }
-
-    VolumeSlider {
-        Layout.fillWidth: true
-        value: root.playback.volume
-        maximumValue: root.maximumVolume
-        interactive: root.playback.canSetVolume
-        onMoved: value => root.playback.setVolume(value)
-    }
+  Text {
+    text: "󰕾"
+    font.family: Constants.fontFamily
+    font.pixelSize: MusicStyle.iconSizeLg
+    color: Colors.accent
+  }
+  ValueSlider {
+    Layout.fillWidth: true
+    value: root.playback.volume
+    maximum: root.playback.volumeMaximum || 1
+    enabled: root.playback.canSetVolume
+    onMoved: function(value) { root.playback.setVolume(value) }
+  }
 }

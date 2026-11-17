@@ -24,6 +24,16 @@ function configSections(config, defaults) {
     if (!Array.isArray(entries)) entries = fallback[section]
     out[section] = Array.isArray(entries) ? entries.slice() : []
   })
+  // Upgrade the original unversioned default layout without changing custom
+  // or versioned layouts, or duplicating music placed in another section.
+  var oldRight = ['bluetooth', 'network', 'audio', 'power']
+  var hasMusic = sectionNames.some(function(section) {
+    return out[section].some(function(entry) { return entryId(entry) === 'music' })
+  })
+  if (config && config.version === undefined && !hasMusic &&
+      Array.isArray(layout.right) && Array.isArray(fallback.right) && fallback.right.indexOf('music') >= 0 &&
+      out.right.length === oldRight.length && oldRight.every(function(id, i) { return out.right[i] === id }))
+    out.right.unshift('music')
   return out
 }
 

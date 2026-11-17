@@ -72,7 +72,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Colors.withAlpha(root.backgroundColor, 0.1)
+        color: MusicStyle.withAlpha(root.backgroundColor, 0.1)
         opacity: root.artOpacity
     }
 
@@ -87,31 +87,31 @@ Item {
 
             GradientStop {
                 position: 0.00
-                color: Colors.withAlpha(root.backgroundColor, 0.03)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.03)
             }
             GradientStop {
                 position: 0.24
-                color: Colors.withAlpha(root.backgroundColor, 0.06)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.06)
             }
             GradientStop {
                 position: 0.34
-                color: Colors.withAlpha(root.backgroundColor, 0.12)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.12)
             }
             GradientStop {
                 position: 0.42
-                color: Colors.withAlpha(root.backgroundColor, 0.26)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.26)
             }
             GradientStop {
                 position: 0.50
-                color: Colors.withAlpha(root.backgroundColor, 0.45)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.45)
             }
             GradientStop {
                 position: 0.58
-                color: Colors.withAlpha(root.backgroundColor, 0.70)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.70)
             }
             GradientStop {
                 position: 0.65
-                color: Colors.withAlpha(root.backgroundColor, 0.91)
+                color: MusicStyle.withAlpha(root.backgroundColor, 0.91)
             }
             GradientStop {
                 position: 0.71

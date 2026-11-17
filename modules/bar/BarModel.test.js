@@ -14,6 +14,13 @@ const legacy = Model.normalizeConfig({ bar: { layout: { left: ['a'], center: ['b
 assert.deepEqual(legacy.bar.centerBegin, ['indicators'])
 assert.equal('layout' in legacy.bar, false)
 
+const musicDefaults = { ...defaults, right: ['music', 'bluetooth', 'network', 'audio', 'power'] }
+const oldRight = ['bluetooth', 'network', 'audio', 'power']
+assert.deepEqual(Model.configSections({ bar: { right: oldRight } }, musicDefaults).right, musicDefaults.right)
+assert.deepEqual(Model.configSections({ version: 1, bar: { right: oldRight } }, musicDefaults).right, oldRight)
+assert.deepEqual(Model.configSections({ bar: { right: ['network', 'audio'] } }, musicDefaults).right, ['network', 'audio'])
+assert.deepEqual(Model.configSections({ bar: { left: ['music'], right: oldRight } }, musicDefaults).right, oldRight)
+
 const sections = { left: ['a'], centerBegin: ['indicators'], center: ['clock'], centerEnd: ['weather'], right: ['audio'] }
 assert.equal(Model.moveWidget(sections, { section: 'centerEnd', index: 0 }, { section: 'centerBegin', index: 1 }), true)
 assert.deepEqual(sections.centerBegin, ['indicators', 'weather'])

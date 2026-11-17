@@ -18,7 +18,7 @@ Item {
         radius: width / 2
         color: "#0f0e15"
         border.width: 1.5
-        border.color: Colors.withAlpha(Colors.muted, 0.28)
+        border.color: MusicStyle.withAlpha(Colors.muted, 0.28)
     }
 
                       
@@ -29,7 +29,7 @@ Item {
         radius: width / 2
         color: "transparent"
         border.width: 1
-        border.color: Colors.withAlpha(Colors.foreground, 0.08)
+        border.color: MusicStyle.withAlpha(Colors.foreground, 0.08)
     }
 
                                                       
@@ -46,7 +46,7 @@ Item {
             radius: width / 2
             color: "transparent"
             border.width: (index % 3 === 0) ? 1.5 : 1
-            border.color: Colors.withAlpha(Colors.foreground, (index % 2 === 0) ? 0.06 : 0.035)
+            border.color: MusicStyle.withAlpha(Colors.foreground, (index % 2 === 0) ? 0.06 : 0.035)
         }
     }
 
@@ -82,7 +82,7 @@ Item {
                 }
                 GradientStop {
                     position: 0.50
-                    color: Colors.withAlpha(Colors.accent, 0.32)
+                    color: MusicStyle.withAlpha(Colors.accent, 0.32)
                 }
                 GradientStop {
                     position: 0.58
@@ -116,7 +116,7 @@ Item {
                 }
                 GradientStop {
                     position: 0.50
-                    color: Colors.withAlpha(Colors.accent, 0.25)
+                    color: MusicStyle.withAlpha(Colors.accent, 0.25)
                 }
                 GradientStop {
                     position: 0.58
@@ -138,7 +138,7 @@ Item {
         radius: width / 2
         color: "transparent"
         border.width: 1
-        border.color: Colors.withAlpha(Colors.foreground, 0.12)
+        border.color: MusicStyle.withAlpha(Colors.foreground, 0.12)
     }
 
                                                                      
@@ -151,7 +151,7 @@ Item {
         color: Colors.accent
 
         border.width: 2
-        border.color: Colors.withAlpha(Colors.backgroundDeep, 0.5)
+        border.color: MusicStyle.withAlpha(MusicStyle.backgroundDeep, 0.5)
 
                                              
         Rectangle {
@@ -161,7 +161,7 @@ Item {
                 orientation: Gradient.Vertical
                 GradientStop {
                     position: 0.0
-                    color: Colors.withAlpha(Colors.foreground, 0.20)
+                    color: MusicStyle.withAlpha(Colors.foreground, 0.20)
                 }
                 GradientStop {
                     position: 0.5
@@ -169,7 +169,7 @@ Item {
                 }
                 GradientStop {
                     position: 1.0
-                    color: Colors.withAlpha(Colors.backgroundDeep, 0.25)
+                    color: MusicStyle.withAlpha(MusicStyle.backgroundDeep, 0.25)
                 }
             }
         }
@@ -182,7 +182,7 @@ Item {
             radius: width / 2
             color: "transparent"
             border.width: 1
-            border.color: Colors.withAlpha(Colors.background, 0.35)
+            border.color: MusicStyle.withAlpha(Colors.background, 0.35)
         }
 
                                                                      
@@ -204,7 +204,7 @@ Item {
             radius: 7
             color: Colors.background
             border.width: 1.5
-            border.color: Colors.withAlpha(Colors.background, 0.5)
+            border.color: MusicStyle.withAlpha(Colors.background, 0.5)
         }
     }
 }

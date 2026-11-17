@@ -9,7 +9,7 @@ ColumnLayout {
 
     required property var playback
 
-    spacing: Constants.spacingXs
+    spacing: MusicStyle.spacingXs
 
     function formatTime(seconds) {
         if (!isFinite(seconds) || seconds < 0)
@@ -51,7 +51,7 @@ ColumnLayout {
             height: slider.barHeight
             radius: height / 2
             anchors.verticalCenter: parent.verticalCenter
-            color: Colors.withAlpha(Colors.foreground, 0.22)
+            color: MusicStyle.withAlpha(Colors.foreground, 0.22)
         }
 
                                                       
@@ -168,7 +168,7 @@ ColumnLayout {
 
         Text {
             text: root.formatTime(slider.dragging ? slider.dragFraction * root.playback.durationSeconds : root.playback.positionSeconds)
-            color: Colors.foregroundQuiet
+            color: MusicStyle.foregroundQuiet
             font.family: Constants.fontFamily
             font.pixelSize: 10
         }
@@ -179,7 +179,7 @@ ColumnLayout {
 
         Text {
             text: "-" + root.formatTime(Math.max(0, root.playback.durationSeconds - (slider.dragging ? slider.dragFraction * root.playback.durationSeconds : root.playback.positionSeconds)))
-            color: Colors.foregroundQuiet
+            color: MusicStyle.foregroundQuiet
             font.family: Constants.fontFamily
             font.pixelSize: 10
         }

@@ -22,6 +22,7 @@ QtObject {
     bluetooth: Qt.resolvedUrl("widgets/bluetooth/Bluetooth.qml"),
     network: Qt.resolvedUrl("widgets/network/Network.qml"),
     audio: Qt.resolvedUrl("widgets/audio/Audio.qml"),
+    music: Qt.resolvedUrl("widgets/music/MusicButton.qml"),
     power: Qt.resolvedUrl("widgets/power/Power.qml")
   })
 

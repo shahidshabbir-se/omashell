@@ -1,122 +1,56 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Widgets
-import "../../../../config"
-import "../layout"
-import "."
+import qs.common
+import qs.config
+import qs.modules.bar.widgets.music
 
-Item {
-    id: root
+PanelShell {
+  id: root
+  layerNamespace: "omashell-music"
+  cardWidth: 300
+  contentPadding: 0
+  property bool entranceReady: false
+  onOpenedChanged: {
+    entranceReady = false
+    if (opened) Qt.callLater(function() { if (root.opened) root.entranceReady = true })
+  }
 
-    width: Constants.musicPopupWidth
-    height: Constants.musicPopupHeight
-    implicitHeight: height
+  MprisPlaybackSession { id: playback }
 
-    property bool open: false
-    property string barPosition: Constants.barPosition
+  Item {
+    width: parent.width
+    implicitHeight: Math.max(496, content.implicitHeight + Constants.panelPadding * 2)
 
-    onOpenChanged: {
-        if (open)
-            entrance.play();
-        else
-            entrance.reset();
+    MusicBackdrop {
+      anchors.fill: parent
+      artworkSource: playback.artworkSource
+      entranceReady: root.entranceReady
+      active: playback.hasCurrentPlayback
     }
 
-    Component.onCompleted: {
-        if (open)
-            entrance.play();
+    ColumnLayout {
+      id: content
+      x: Constants.panelPadding
+      width: Math.max(0, parent.width - Constants.panelPadding * 2)
+      height: Math.max(0, parent.height - Constants.panelPadding * 2)
+      spacing: 0
+      opacity: root.entranceReady ? 1 : 0
+      y: Constants.panelPadding + (root.entranceReady ? 0 : 10)
+      Behavior on opacity { NumberAnimation { duration: 167; easing.type: Easing.OutCubic } }
+      Behavior on y { NumberAnimation { duration: 167; easing.type: Easing.OutCubic } }
+
+      NowPlayingHero {
+        Layout.fillWidth: true
+        playback: playback
+        entranceReady: root.entranceReady
+        panelOpen: root.opened
+      }
+      Item { Layout.preferredHeight: MusicStyle.spacingLg }
+      TrackProgress { Layout.fillWidth: true; playback: playback }
+      Item { Layout.preferredHeight: MusicStyle.spacingSm }
+      PlaybackControls { Layout.fillWidth: true; playback: playback; entranceReady: root.entranceReady }
+      Item { Layout.preferredHeight: MusicStyle.spacingXl }
+      VolumeControl { Layout.fillWidth: true; playback: playback }
     }
-
-    QtObject {
-        id: entrance
-
-        property real revealProgress: 0
-        property bool ready: false
-
-        function play() {
-            reset();
-            Qt.callLater(() => {
-                if (!root.open)
-                    return;
-
-                ready = true;
-                revealProgress = 1;
-            });
-        }
-
-        function reset() {
-            ready = false;
-            revealProgress = 0;
-        }
-    }
-
-    PopupSurface {
-        id: shell
-        anchors.fill: parent
-        open: root.open
-        barPosition: root.barPosition
-        clip: true
-
-        MprisPlaybackSession {
-            id: playback
-        }
-
-        MusicBackdrop {
-            anchors.fill: parent
-            artworkSource: playback.artworkSource
-            entranceReady: entrance.ready
-            active: playback.hasCurrentPlayback
-        }
-
-        ColumnLayout {
-            x: Constants.paddingLg
-            y: Constants.paddingLg + (1 - entrance.revealProgress) * 10
-            width: root.width - Constants.paddingLg * 2
-            height: root.height - Constants.paddingLg * 2
-            spacing: 0
-            opacity: Math.min(1, entrance.revealProgress * 1.25)
-
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: Constants.animationNormal
-                    easing.type: Easing.OutCubic
-                }
-            }
-
-            NowPlayingHero {
-                Layout.fillWidth: true
-                playback: playback
-                entranceReady: entrance.ready
-                panelOpen: root.open
-            }
-
-            Item {
-                Layout.preferredHeight: Constants.spacingLg
-            }
-
-            TrackProgress {
-                Layout.fillWidth: true
-                playback: playback
-            }
-
-            Item {
-                Layout.preferredHeight: Constants.spacingSm
-            }
-
-            PlaybackControls {
-                Layout.fillWidth: true
-                playback: playback
-                entranceReady: entrance.ready
-            }
-
-            Item {
-                Layout.preferredHeight: Constants.spacingXl
-            }
-
-            VolumeControl {
-                Layout.fillWidth: true
-                playback: playback
-            }
-        }
-    }
+  }
 }

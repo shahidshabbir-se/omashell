@@ -67,10 +67,12 @@ Arrange widgets in `left`, `centerBegin`, `center`, `centerEnd`, and `right`; ch
     ],
     "center": ["clock"],
     "centerEnd": ["worldclock", "weather"],
-    "right": ["bluetooth", "network", "audio", "power"]
+    "right": ["music", "bluetooth", "network", "audio", "power"]
   }
 }
 ```
+
+The music widget appears when an MPRIS player has active or paused playback. Existing user configurations retain their layout; add `"music"` to a bar section to enable it there.
 
 See [`modules/bar/WidgetRegistry.qml`](modules/bar/WidgetRegistry.qml) for widget IDs. Notification and widget state is kept in your XDG state directory, not in the installed application.
 

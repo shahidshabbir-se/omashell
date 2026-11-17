@@ -7,6 +7,7 @@ import qs.modules.bar.widgets.worldclock
 import qs.modules.bar.widgets.bluetooth
 import qs.modules.bar.widgets.network
 import qs.modules.bar.widgets.audio
+import qs.modules.bar.widgets.music
 import qs.modules.bar.widgets.power
 import qs.modules.notifications
 import qs.modules.visualizer
@@ -24,6 +25,7 @@ ShellRoot {
     bluetooth: bluetoothPanel,
     network: networkPanel,
     audio: audioPanel,
+    music: musicPanel,
     power: powerPanel,
     notifications: notificationsPanel
   })
@@ -41,6 +43,7 @@ ShellRoot {
     bluetoothPanel.close()
     networkPanel.close()
     audioPanel.close()
+    musicPanel.close()
     powerPanel.close()
     notificationsPanel.close()
   }
@@ -54,6 +57,7 @@ ShellRoot {
     if (target !== bluetoothPanel) bluetoothPanel.close()
     if (target !== networkPanel) networkPanel.close()
     if (target !== audioPanel) audioPanel.close()
+    if (target !== musicPanel) musicPanel.close()
     if (target !== powerPanel) powerPanel.close()
     if (target !== notificationsPanel) notificationsPanel.close()
     target.anchorX = x
@@ -66,13 +70,19 @@ ShellRoot {
     if (panel) showPanel(panel, x)
   }
 
+  function panelAvailable(id) {
+    if (id === "power") return PowerService.present
+    if (id === "music") return MusicRuntime.hasCurrentPlayback
+    return true
+  }
+
   function switchPanelFrom(id, direction) {
     var configured = Config.bar.left.concat(Config.bar.centerBegin, Config.bar.center, Config.bar.centerEnd, Config.bar.right)
     var ids = []
     for (var i = 0; i < configured.length; i++)
-      if (panelFor[configured[i]] && (configured[i] !== "power" || PowerService.present) && ids.indexOf(configured[i]) < 0) ids.push(configured[i])
+      if (panelFor[configured[i]] && panelAvailable(configured[i]) && ids.indexOf(configured[i]) < 0) ids.push(configured[i])
     for (var key in panelFor)
-      if ((key !== "power" || PowerService.present) && ids.indexOf(key) < 0) ids.push(key)
+      if (panelAvailable(key) && ids.indexOf(key) < 0) ids.push(key)
     if (ids.length < 2) return
     var index = ids.indexOf(id)
     if (index < 0) return
@@ -119,6 +129,7 @@ ShellRoot {
     id: audioPanel
     onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("audio", direction) }
   }
+  MusicPanel { id: musicPanel }
   PowerPanel {
     id: powerPanel
     onSwitchPanelRequested: function(direction) { shell.switchPanelFrom("power", direction) }
@@ -147,6 +158,7 @@ ShellRoot {
     function toggleBluetooth(): void { shell.showPanel(bluetoothPanel, -1) }
     function toggleNetwork(): void { shell.showPanel(networkPanel, -1) }
     function toggleAudio(): void { shell.showPanel(audioPanel, -1) }
+    function toggleMusic(): void { shell.showPanel(musicPanel, -1) }
     function togglePower(): void { shell.showPanel(powerPanel, -1) }
     function toggleNotifications(): void { shell.showPanel(notificationsPanel, -1) }
     function toggleNotificationKeyboard(): void {

@@ -35,6 +35,7 @@ PanelWindow {
   property real anchorX: -1
   property real anchorY: -1
   property int cardWidth: 340
+  property int contentPadding: Constants.panelPadding
   property int spacing: 14
   property bool reduceMotion: false
   property bool focusPrimed: false
@@ -51,7 +52,7 @@ PanelWindow {
   // A caller may set anchorY for a vertical bar, but the bar currently hands
   // its along-bar coordinate over in anchorX, as it does for a horizontal one.
   readonly property real anchorAlongBar: root.anchorAlongFor(root.barPosition, anchorX, anchorY, width, height)
-  readonly property real cardContentHeight: contentColumn.implicitHeight + Constants.panelPadding * 2 + 4
+  readonly property real cardContentHeight: contentColumn.implicitHeight + contentPadding * 2 + 4
   // Width is fitted without reading the content, so the card's width and the
   // column's wrapped height cannot feed each other in a binding loop.
   readonly property real resolvedCardWidth: root.fitCardWidth(cardWidth, width, verticalBar,
@@ -196,9 +197,9 @@ PanelWindow {
 
     Column {
       id: contentColumn
-      x: Constants.panelPadding + 2
-      y: Constants.panelPadding + 2
-      width: card.width - (Constants.panelPadding + 2) * 2
+      x: root.contentPadding + 2
+      y: root.contentPadding + 2
+      width: card.width - (root.contentPadding + 2) * 2
       spacing: root.spacing
     }
   }

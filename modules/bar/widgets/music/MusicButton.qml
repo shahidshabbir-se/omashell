@@ -1,42 +1,27 @@
 import QtQuick
-import "../../../../config"
-import "../layout"
+import qs.common
+import qs.config
+import qs.modules.bar.widgets.music
 
-Item {
-    id: root
+Widget {
+  id: root
+  readonly property bool available: MusicRuntime.hasCurrentPlayback
+  readonly property real barSlotWidth: Constants.iconSlot
+  readonly property string tooltip: MusicRuntime.hasPlayer ? String(MusicRuntime.player.trackTitle || "Music") : "Music"
+  signal activated()
+  implicitWidth: 21
+  implicitHeight: 21
 
-    property bool active: false
-    signal clicked
-
-    readonly property bool available: MusicRuntime.hasCurrentPlayback
-
-    visible: available
-    implicitWidth: available ? Constants.barIconSlot : 0
-    implicitHeight: available ? Constants.buttonSize : 0
-    width: implicitWidth
-    height: implicitHeight
-
-    PopupAnchorSurface {
-        anchors.fill: parent
-        active: root.active
-
-        Text {
-            anchors.centerIn: parent
-            text: "󰎈"
-            color: Colors.foreground
-            font.family: Constants.fontFamily
-            font.pixelSize: Constants.iconSizeLg + 2
-        }
-
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                if (root.available)
-                    root.clicked();
-            }
-        }
-    }
+  OpticalGlyph {
+    anchors.fill: parent
+    text: "󰎈"
+    fontSize: Constants.fontBody
+    paintedSize: Constants.iconSize
+    color: Colors.foreground
+  }
+  MouseArea {
+    anchors.fill: parent
+    cursorShape: Qt.PointingHandCursor
+    onClicked: root.activated()
+  }
 }

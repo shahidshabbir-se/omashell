@@ -20,9 +20,9 @@ ColumnLayout {
         visible: root.playback.hasCurrentPlayback
         text: "Now Playing"
         horizontalAlignment: Text.AlignHCenter
-        color: Colors.foregroundStrong
+        color: MusicStyle.foregroundStrong
         font.family: Constants.fontFamily
-        font.pixelSize: Constants.fontSizeLg
+        font.pixelSize: MusicStyle.fontSizeLg
         font.weight: Font.DemiBold
         opacity: root.entranceReady ? 1 : 0
 
@@ -46,14 +46,14 @@ ColumnLayout {
     }
 
     Item {
-        Layout.preferredHeight: root.playback.hasCurrentPlayback ? Constants.spacingLg : 0
+        Layout.preferredHeight: root.playback.hasCurrentPlayback ? MusicStyle.spacingLg : 0
     }
 
     ClippingRectangle {
         id: artworkContainer
 
-        Layout.preferredWidth: Constants.musicArtworkSize
-        Layout.preferredHeight: Constants.musicArtworkSize
+        Layout.preferredWidth: Math.min(MusicStyle.musicArtworkSize, root.width)
+        Layout.preferredHeight: Math.min(MusicStyle.musicArtworkSize, root.width)
         Layout.alignment: Qt.AlignHCenter
         radius: width / 2
         color: "transparent"
@@ -85,7 +85,7 @@ ColumnLayout {
             anchors.fill: parent
             visible: root.hasRealArtwork
             source: root.playback.artworkSource
-            sourceSize: Qt.size(Constants.musicArtworkSize, Constants.musicArtworkSize)
+            sourceSize: Qt.size(MusicStyle.musicArtworkSize, MusicStyle.musicArtworkSize)
             fillMode: Image.PreserveAspectCrop
             smooth: true
             mipmap: true
@@ -114,7 +114,7 @@ ColumnLayout {
     }
 
     Item {
-        Layout.preferredHeight: Constants.spacingMd
+        Layout.preferredHeight: MusicStyle.spacingMd
     }
 
     Item {
@@ -151,9 +151,9 @@ ColumnLayout {
                 Layout.fillWidth: true
                 active: root.entranceReady
                 text: root.playback.title
-                color: Colors.foregroundStrong
+                color: MusicStyle.foregroundStrong
                 font.family: Constants.fontFamily
-                font.pixelSize: Constants.fontSizeXl
+                font.pixelSize: MusicStyle.fontSizeXl
                 font.bold: true
             }
 
@@ -161,9 +161,9 @@ ColumnLayout {
                 Layout.fillWidth: true
                 active: root.entranceReady
                 text: root.playback.artist
-                color: Colors.foregroundQuiet
+                color: MusicStyle.foregroundQuiet
                 font.family: Constants.fontFamily
-                font.pixelSize: Constants.fontSizeMd
+                font.pixelSize: MusicStyle.fontSizeMd
             }
         }
     }
