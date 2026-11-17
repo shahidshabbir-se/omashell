@@ -1,110 +1,61 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
-import "../../config"
+import qs.modules.bar.widgets.audio
+import 'VolumeModel.js' as Model
 
 Scope {
-    id: root
+  id: root
+  property var observed: null
+  property var popupScreen: null
+  property bool opened: false
+  property var display: Model.state(0, false)
 
-    property var audioRuntime
-    readonly property var sink: audioRuntime ? audioRuntime.sink : null
-    readonly property bool available: !!audioRuntime && audioRuntime.available
-    readonly property real volume: audioRuntime ? audioRuntime.volume : 0
-    readonly property bool muted: audioRuntime ? audioRuntime.muted : false
+  function focusedScreen() {
+    var monitor = Hyprland.focusedMonitor
+    var name = monitor ? String(monitor.name || '') : ''
+    for (var i = 0; i < Quickshell.screens.length; i++)
+      if (Quickshell.screens[i].name === name) return Quickshell.screens[i]
+    return Quickshell.screens.length ? Quickshell.screens[0] : null
+  }
 
-    property var popupScreen: null
-    property bool open: false
-    property var observedSink: null
-    property real previousVolume: 0
-    property bool previousMuted: false
-
-    function dismiss() {
-        open = false;
-        hideTimer.stop();
+  function observe() {
+    var sink = AudioService.hasOutput ? AudioService.sink : null
+    var previousSink = observed ? observed.sink : null
+    observed = Model.observe(observed, sink, AudioService.outputVolume, AudioService.outputMuted)
+    if (sink !== previousSink) {
+      opened = false
+      hideTimer.stop()
     }
+    if (!observed.changed) return
+    display = Model.state(observed.volume, observed.muted)
+    if (!opened) popupScreen = focusedScreen()
+    opened = popupScreen !== null
+    if (opened) hideTimer.restart()
+  }
 
-    function observe() {
-                                                                                  
-        if (!available) {
-            observedSink = null;
-            dismiss();
-            return;
-        }
-        const nextVolume = sink.audio.volume;
-        const nextMuted = sink.audio.muted;
-        const changed = observedSink === sink
-            && (previousVolume !== nextVolume || previousMuted !== nextMuted);
-        if (observedSink !== sink)
-            dismiss();
-                                                                          
-        observedSink = sink;
-        previousVolume = nextVolume;
-        previousMuted = nextMuted;
-        if (changed)
-            pulse();
+  function scheduleObserve() { Qt.callLater(root.observe) }
+  Component.onCompleted: scheduleObserve()
+  Connections {
+    target: AudioService
+    function onSinkChanged() { root.scheduleObserve() }
+    function onHasOutputChanged() { root.scheduleObserve() }
+    function onOutputVolumeChanged() { root.scheduleObserve() }
+    function onOutputMutedChanged() { root.scheduleObserve() }
+  }
+  Connections {
+    target: Quickshell
+    function onScreensChanged() {
+      if (root.opened && Quickshell.screens.indexOf(root.popupScreen) < 0) {
+        root.popupScreen = root.focusedScreen()
+        if (!root.popupScreen) root.opened = false
+      }
     }
-
-    function pulse() {
-        if (!available)
-            return;
-        if (!open) {
-            const focused = Hyprland.focusedMonitor?.name;
-            popupScreen = Quickshell.screens.find(screen => screen.name === focused)
-                ?? Quickshell.screens[0] ?? null;
-        }
-        open = popupScreen !== null;
-        if (!flyer.hovered)
-            hideTimer.restart();
-    }
-
-    function toggleMute() {
-        if (available)
-            audioRuntime.toggleMute();
-    }
-
-    function nudge(delta) {
-        if (!available || muted || !Number.isFinite(delta))
-            return;
-        audioRuntime.setVolume(Math.max(0, Math.min(Constants.volumeMaximum, volume + delta)));
-    }
-
-    onSinkChanged: observe()
-    onAvailableChanged: observe()
-                                                                               
-                                                                                
-    onVolumeChanged: observe()
-    onMutedChanged: observe()
-    Component.onCompleted: observe()
-
-    Connections {
-        target: Quickshell
-        function onScreensChanged() {
-            if (!Quickshell.screens.includes(root.popupScreen)) {
-                root.dismiss();
-                root.popupScreen = null;
-            }
-        }
-    }
-
-    Timer {
-        id: hideTimer
-        interval: Constants.volumeHideMs
-        onTriggered: root.open = false
-    }
-
-    VolumeFlyer {
-        id: flyer
-        output: root.popupScreen
-        open: root.open && root.available
-        volume: root.volume
-        muted: root.muted
-        onHoveredChanged: {
-            if (hovered)
-                hideTimer.stop();
-            else if (root.open)
-                hideTimer.restart();
-        }
-        onToggleMute: root.toggleMute()
-        onNudge: delta => root.nudge(delta)
-    }
+  }
+  Timer { id: hideTimer; interval: 1200; onTriggered: root.opened = false }
+  VolumeFlyer {
+    output: root.popupScreen
+    opened: root.opened
+    display: root.display
+  }
 }

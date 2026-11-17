@@ -11,6 +11,7 @@ import qs.modules.bar.widgets.music
 import qs.modules.bar.widgets.power
 import qs.modules.notifications
 import qs.modules.visualizer
+import qs.modules.volume
 import qs.config
 
 ShellRoot {
@@ -141,6 +142,7 @@ ShellRoot {
   WifiSharePanel { id: wifiSharePanel }
   SpeedTestPanel { id: speedTestPanel }
   Visualizer {}
+  Volume {}
   ToastDeck {}
 
   function runShellTool(name, args) {
