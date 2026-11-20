@@ -73,6 +73,13 @@ class WallpaperTest(unittest.TestCase):
                 import_omarchy.download('b'*40, [bad], destination)
         self.assertEqual([item['name'] for item in library.list_images({'sources': []})], ['spaces #.webp'])
 
+    def test_apply_uses_native_random_transition(self):
+        path = self.make('wallpaper #1.webp')
+        with patch.object(library.subprocess, 'run') as run:
+            run.return_value.returncode = 0
+            self.assertEqual(library.apply_image(path), 0)
+        run.assert_called_once_with(['awww', 'img', '--transition-type', 'random', '--', path])
+
     def test_caching_a_selected_store_image_makes_a_stable_copy(self):
         original = Path(self.make('source/file.webp'))
         cached = library.keep_store_image(original)

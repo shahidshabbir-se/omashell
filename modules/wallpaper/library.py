@@ -120,7 +120,7 @@ def apply_image(path):
     if not path.is_absolute() or not is_image(path):
         raise ValueError('This wallpaper is no longer available.')
     displayed = keep_store_image(path) if path.resolve().is_relative_to('/nix/store') else path
-    result = subprocess.run(['awww', 'img', '--transition-type', 'fade', '--', str(displayed)]).returncode
+    result = subprocess.run(['awww', 'img', '--transition-type', 'random', '--', str(displayed)]).returncode
     if result == 0 and displayed != path:
         try:
             (data_dir() / 'last-applied.json').write_text(json.dumps({'displayed': str(displayed), 'original': str(path)}))
