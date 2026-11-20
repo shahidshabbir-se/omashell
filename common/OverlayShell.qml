@@ -32,6 +32,7 @@ PanelWindow {
   property bool keyboard: true
   property var focusTarget: null
   property bool cardChrome: true
+  property real scrimOpacity: 0.82
   property int cardWidth: 360
   property int padding: 18
   property int spacing: 14
@@ -83,7 +84,7 @@ PanelWindow {
     anchors.fill: parent
     visible: opacity > 0
     color: "#000000"
-    property real shown: root.opened ? 0.82 : 0
+    property real shown: root.opened ? root.scrimOpacity : 0
 
     Behavior on shown {
       NumberAnimation {

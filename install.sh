@@ -82,6 +82,9 @@ check_dependencies() {
   for command_name in bash python3 realpath readlink; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  required: %s ✓\n' "$command_name"; else printf '  required: %s MISSING\n' "$command_name"; missing=1; fi
   done
+  if ! python3 -c 'import PIL' >/dev/null 2>&1; then
+    printf '%s\n' '  optional: Python Pillow not found (wallpaper previews will not use the disk cache)'
+  fi
   if has_shell; then printf '  required: Quickshell ✓\n'; else printf '  required: qs/quickshell MISSING\n'; missing=1; fi
   for command_name in hyprctl jq wl-copy wl-paste; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  required: %s ✓\n' "$command_name"; else printf '  required: %s MISSING\n' "$command_name"; missing=1; fi

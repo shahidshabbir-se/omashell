@@ -28,6 +28,8 @@ Open the wallpaper picker with `omashell ipc call omashell toggleWallpaper` or b
 
 Use `[]` to omit personal sources. Folders are scanned one level deep. The older `wallpaper.directory` setting still works as shorthand for one local source. Browse with the arrow keys, scroll wheel, or by clicking a side preview. Press Enter or click the center preview to set it on all outputs. Install `awww` and the Qt 6 image formats plugins and start `awww-daemon` with your Wayland session if it is not already running.
 
+On standalone installs, install Python Pillow (`python-pillow` on Arch) for disk-cached previews. `dwebp` (from `libwebp` on Arch) speeds up large WebP images. Both are included in the Nix package. Without Pillow, Qt decodes size-limited previews directly. The generated previews are disposable and live under `$XDG_CACHE_HOME/omashell/wallpaper-previews-v1` (default `~/.cache/omashell/wallpaper-previews-v1`); original images are never changed.
+
 **Optional Omarchy wallpapers.** The standalone installer asks whether to download them on an interactive terminal; the default is to skip. Say yes to choose themes by name or number, or choose `all`. For unattended setups:
 
 ```sh

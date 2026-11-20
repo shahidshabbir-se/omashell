@@ -13,6 +13,7 @@
   systemd,
   brightnessctl,
   awww,
+  libwebp,
   curl,
   networkmanager,
   wireplumber,
@@ -38,10 +39,11 @@ let
     gawk
     bash
     coreutils
-    python3
+    (python3.withPackages (ps: [ ps.pillow ]))
     systemd
     brightnessctl
     awww
+    libwebp
     curl
     networkmanager
     wireplumber

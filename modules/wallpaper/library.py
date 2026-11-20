@@ -10,6 +10,8 @@ import subprocess
 import sys
 from tempfile import NamedTemporaryFile
 
+from previews import SIZES, preview_key, target_for
+
 
 FORMATS = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.gif', '.tif', '.tiff',
            '.avif', '.jxl', '.ico', '.pnm', '.qoi', '.tga', '.dds', '.hdr', '.exr', '.ff'}
@@ -58,10 +60,14 @@ def list_images(config):
             if not is_image(path):
                 continue
             real = path.resolve(strict=True)
+            key = preview_key(real)
         except (OSError, RuntimeError):
             continue
         if real not in seen:
-            result.append({'name': path.name, 'path': str(path), 'url': path.as_uri()})
+            cached = {tier: target.as_uri() for tier in SIZES
+                      if (target := target_for(key, tier)).is_file()}
+            result.append({'name': path.name, 'path': str(path), 'url': path.as_uri(),
+                           'key': key, 'cached': cached, 'canonical': str(real)})
             seen.add(real)
     return result
 
@@ -85,23 +91,55 @@ def keep_store_image(path):
         return target
 
 
+def active_image(output):
+    try:
+        response = subprocess.run(['awww', 'query'], capture_output=True, text=True, timeout=0.15)
+        if response.returncode:
+            return ''
+        rows = []
+        for line in response.stdout.splitlines():
+            line = line.removeprefix(': ')
+            name, delimiter, metadata = line.partition(': ')
+            marker = 'currently displaying: image: '
+            if delimiter and marker in metadata:
+                rows.append((name, metadata.partition(marker)[2]))
+        displayed = next((path for name, path in rows if name == output), rows[0][1] if rows else '')
+        try:
+            previous = json.loads((data_dir() / 'last-applied.json').read_text())
+            if previous.get('displayed') == displayed:
+                return str(Path(previous['original']).resolve())
+        except (OSError, ValueError, KeyError):
+            pass
+        return str(Path(displayed).resolve()) if displayed else ''
+    except (OSError, RuntimeError, subprocess.TimeoutExpired):
+        return ''
+
+
 def apply_image(path):
     path = Path(path)
     if not path.is_absolute() or not is_image(path):
         raise ValueError('This wallpaper is no longer available.')
-    if path.resolve().is_relative_to('/nix/store'):
-        path = keep_store_image(path)
-    return subprocess.run(['awww', 'img', '--transition-type', 'fade', '--', str(path)]).returncode
+    displayed = keep_store_image(path) if path.resolve().is_relative_to('/nix/store') else path
+    result = subprocess.run(['awww', 'img', '--transition-type', 'fade', '--', str(displayed)]).returncode
+    if result == 0 and displayed != path:
+        try:
+            (data_dir() / 'last-applied.json').write_text(json.dumps({'displayed': str(displayed), 'original': str(path)}))
+        except OSError:
+            pass
+    return result
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('action', choices=['list', 'apply'])
+    parser.add_argument('action', choices=['list', 'apply', 'active'])
     parser.add_argument('value')
     args = parser.parse_args()
     try:
         if args.action == 'apply':
             sys.exit(apply_image(args.value))
-        print(json.dumps(list_images(json.loads(args.value))))
+        if args.action == 'active':
+            print(active_image(args.value))
+        else:
+            print(json.dumps(list_images(json.loads(args.value))))
     except (OSError, ValueError) as error:
         sys.exit(str(error))
