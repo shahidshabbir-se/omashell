@@ -47,6 +47,8 @@ QtObject {
     ? Number(raw.version)
     : defaults.version
 
+  readonly property bool clipboardEnabled: configReady && !!(raw && raw.clipboard && raw.clipboard.enabled === true)
+
   readonly property var bar: {
     var sourceConfig = root.raw || root.defaults
     var sections = BarModel.configSections(sourceConfig, root.defaults.bar)

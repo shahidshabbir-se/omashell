@@ -74,6 +74,8 @@ Arrange widgets in `left`, `centerBegin`, `center`, `centerEnd`, and `right`; ch
 
 The music widget appears when an MPRIS player has active or paused playback. Existing user configurations retain their layout; add `"music"` to a bar section to enable it there.
 
+The clipboard history picker opens from a keybind, not the bar. See [clipboard setup and shortcuts](docs/installation.md#clipboard-history).
+
 See [`modules/bar/WidgetRegistry.qml`](modules/bar/WidgetRegistry.qml) for widget IDs. Notification and widget state is kept in your XDG state directory, not in the installed application.
 
 ## Dependencies
@@ -91,6 +93,7 @@ Other tools and services are only needed for the features you use:
 | Weather and place search | `curl` and an internet connection |
 | Stay awake | `systemd-inhibit` and a working systemd inhibitor service |
 | Screenshots | `omasnap`; `xdg-open` to open saved images |
+| Clipboard history | `wl-copy` and `wl-paste` (wl-clipboard); `wtype` for automatic paste |
 
 Notification delivery requires the shell to own the desktop notification service; another running notification daemon can prevent it from registering. The installer can build Omasnap if it is not already available; that requires additional build tools and libraries listed in the [installation guide](docs/installation.md).
 

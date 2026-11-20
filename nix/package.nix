@@ -19,6 +19,7 @@
   tzdata,
   bluez,
   wl-clipboard,
+  wtype,
   qrencode,
   iproute2,
   xdg-utils,
@@ -44,6 +45,7 @@ let
     tzdata
     bluez
     wl-clipboard
+    wtype
     qrencode
     iproute2
     xdg-utils

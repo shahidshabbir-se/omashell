@@ -72,7 +72,7 @@ check_dependencies() {
   for command_name in hyprctl jq wl-copy wl-paste; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  required: %s ✓\n' "$command_name"; else printf '  required: %s MISSING\n' "$command_name"; missing=1; fi
   done
-  for command_name in nmcli curl wpctl pactl cava upower powerprofilesctl bluetoothctl qrencode ip xdg-open; do
+  for command_name in nmcli curl wpctl pactl cava upower powerprofilesctl bluetoothctl qrencode ip xdg-open wtype; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  optional: %s ✓\n' "$command_name"; else printf '  optional: %s not found\n' "$command_name"; fi
   done
 

@@ -67,3 +67,27 @@ omasnap [--capture-region|--capture-window|--capture-fullscreen|--scroll]
 ```
 
 The opener selects the newest image from `OMASNAP_SCREENSHOT_DIR` or `~/Pictures/Screenshots` when no path is supplied. `--edit` opens it in Omasnap; viewing uses `xdg-open`.
+
+## Clipboard history
+
+The clipboard picker is opened with a keybind, not a bar widget. To opt in to recording, add `"clipboard": { "enabled": true }` at the top level of `${XDG_CONFIG_HOME:-~/.config}/omashell/shell.json` (Home Manager: `programs.omashell.settings.clipboard.enabled = true;`). If you have no existing config, this is enough:
+
+```json
+{ "clipboard": { "enabled": true } }
+```
+
+Add **Super+Ctrl+V** in your Hyprland config's format:
+
+```ini
+bind = SUPER CTRL, V, exec, omashell ipc call omashell toggleClipboard
+```
+
+```lua
+hl.bind("SUPER + CTRL + V", hl.dsp.exec_cmd("omashell ipc call omashell toggleClipboard"))
+```
+
+Type to search the previews, use **↑/↓** to select, and press **Enter** or click to paste. **Shift+Enter** copies without pasting. **Delete** removes the selected entry; **Shift+Delete** opens a clear-all confirmation. **Escape** clears the search before closing the picker. Automatic paste sends **Shift+Insert** with `wtype`; if `wtype` is missing or the target doesn't support that shortcut, paste manually from the clipboard.
+
+While clipboard history is enabled, Omashell captures text, PNG images, and `text/uri-list` file selections using `wl-clipboard`. History is local and unencrypted, stored in `${XDG_STATE_HOME:-~/.local/state}/omashell/clipboard/`, with up to 100 entries and 32 MiB of clipboard payloads. It skips clipboard offers marked sensitive, but not secrets copied by apps that omit that hint. Clear the history before disabling it if you don't want prior entries to remain on disk. Disabling history stops recording; clearing history does not clear the system clipboard.
+
+The picker layout and shortcuts are inspired by [Omarchy's clipboard menu](https://github.com/omacom/omarchy/tree/b20d7876f5ec6a45d18b9e4383dc4b6d9e8492ab/shell/plugins/clipboard). Omashell does not use Omarchy's tools or history files.
