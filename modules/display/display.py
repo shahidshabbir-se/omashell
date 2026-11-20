@@ -1,4 +1,4 @@
-"""Display preview transactions for a single built-in Hyprland output."""
+"""Display preview transactions for a single Hyprland output."""
 
 import fcntl
 import json
@@ -20,7 +20,11 @@ IO_TIMEOUT = 1.5
 LUA_HEADER = '-- omashell-display-profile: '
 LUA_MAX = 65536
 FIELDS = {"version", "connector", "width", "height", "refreshRate", "scale"}
-CONNECTOR = re.compile(r"(?:eDP|LVDS|DSI)-[0-9]+", re.ASCII)
+CONNECTOR = re.compile(r"[a-zA-Z][a-zA-Z0-9]*(?:-[a-zA-Z0-9]+)*-[0-9]+", re.ASCII)
+BUILT_IN = re.compile(r"(?:eDP|LVDS|DSI)-[0-9]+", re.ASCII)
+SDR_FORMATS = {"XRGB8888", "XBGR8888", "ARGB8888", "ABGR8888"}
+COLOR_FIELDS = ("currentFormat", "colorManagementPreset", "sdrBrightness", "sdrSaturation",
+                "sdrMinLuminance", "sdrMaxLuminance")
 SIGNATURE = re.compile(r"[a-zA-Z0-9_-]{1,128}")
 TOKEN = re.compile(r"[a-f0-9]{32}")
 MODE = re.compile(r"([0-9]+)x([0-9]+)@([0-9]+(?:\.[0-9]+)?)Hz", re.ASCII)
@@ -46,7 +50,8 @@ def in_range(value, low, high):
 
 
 def validate(profile):
-    if (not isinstance(profile, dict) or profile.keys() - {'transform'} != FIELDS
+    if (not isinstance(profile, dict) or profile.keys() - {'transform', 'exactRule'} != FIELDS
+            or type(profile.get('exactRule', False)) is not bool
             or type(profile.get('transform', 0)) is not int or not 0 <= profile.get('transform', 0) <= 3
             or type(profile['version']) is not int or profile['version'] != 1
             or not isinstance(profile['connector'], str) or not CONNECTOR.fullmatch(profile['connector'])
@@ -124,12 +129,12 @@ def read_profile(path, fallback=None):
 
 
 def discover(hyprland):
-    """Single built-in output, used to bootstrap a missing standalone file."""
+    """Use the only connected output to bootstrap a missing standalone file."""
     monitors = hyprland.monitors()
     monitor = monitors[0] if len(monitors) == 1 else {}
     name = monitor.get('name')
     if not isinstance(name, str) or not CONNECTOR.fullmatch(name):
-        raise DisplayError('Standalone display setup needs exactly one built-in display.')
+        raise DisplayError('Standalone display setup needs exactly one connected display.')
     _, live = hyprland.current(name)
     return live
 
@@ -223,19 +228,21 @@ class Hyprland:
         except ValueError as exc:
             raise DisplayError('Hyprland did not return valid monitor information.') from exc
 
-    def current(self, connector, strict=True):
+    def current(self, connector, strict=True, exact_rule=False):
         monitors = self.monitors()
         monitor = next((m for m in monitors if m.get('name') == connector), {})
         if strict and (len(monitors) != 1 or not monitor
                        or monitor.get('x') != 0 or monitor.get('y') != 0
-                       or monitor.get('currentFormat') not in ('XRGB8888', 'XBGR8888', 'ARGB8888', 'ABGR8888')
-                       or monitor.get('colorManagementPreset') != 'srgb'
-                       or monitor.get('vrr') is not False
                        or not isinstance(monitor.get('availableModes'), list)):
-            raise DisplayError('Preview requires only the configured built-in SDR display, with default color and no VRR.')
+            raise DisplayError('Preview requires one connected display at the default position.')
         if (monitor.get('disabled') is not False or monitor.get('dpmsStatus') is not True
                 or monitor.get('mirrorOf') != 'none' or monitor.get('transform') not in (0, 1, 2, 3)):
-            raise DisplayError('The built-in display must be on, unmirrored, and not flipped.')
+            raise DisplayError('The display must be on, unmirrored, and not flipped.')
+        if strict and monitor.get('vrr') is not False:
+            raise DisplayError('Disable variable refresh rate before previewing display settings.')
+        if strict and not exact_rule and (monitor.get('currentFormat') not in SDR_FORMATS
+                                          or monitor.get('colorManagementPreset') != 'srgb'):
+            raise DisplayError('HDR and non-default color previews require an exact connector rule and exactRule in the profile.')
         live = profile_for(connector, monitor.get('width'), monitor.get('height'),
                            monitor.get('refreshRate'), monitor.get('scale'))
         live = validate(dict(live, transform=monitor['transform']))
@@ -251,7 +258,7 @@ class Hyprland:
 
 
 def choices(hyprland, profile):
-    monitor, live = hyprland.current(profile['connector'])
+    monitor, live = hyprland.current(profile['connector'], exact_rule=profile.get('exactRule', False))
     options = mode_options(monitor, live)
     if not options:
         raise DisplayError('Hyprland did not advertise any usable display modes.')
@@ -261,14 +268,17 @@ def choices(hyprland, profile):
         x_ppi, y_ppi = live['width'] * 25.4 / width_mm, live['height'] * 25.4 / height_mm
         if abs(x_ppi - y_ppi) < 0.1 * max(x_ppi, y_ppi):
             density = round((x_ppi + y_ppi) / 2)
-    return live, options, density
+    return monitor, live, options, density
 
 
-def verify(hyprland, target, end, permitted, strict=True):
+def verify(hyprland, target, end, permitted, original, strict=True, exact_rule=False):
     while now() < end and permitted():
         try:
-            _monitor, live = hyprland.current(target['connector'], strict)
-            if same_settings(live, target) and now() < end and permitted():
+            monitor, live = hyprland.current(target['connector'], strict, exact_rule)
+            if (same_settings(live, target)
+                    and monitor.get('vrr') == original.get('vrr')
+                    and all(monitor.get(key) == original.get(key) for key in COLOR_FIELDS)
+                    and now() < end and permitted()):
                 return True
         except DisplayError:
             # Mode changes can temporarily remove the output from readback.
@@ -350,7 +360,8 @@ def worker(directory, hyprland, profile_path, target, preview_seconds=PREVIEW_SE
             profile, revision, mode = read_profile(profile_path, target)
             if target['connector'] != profile['connector']:
                 raise DisplayError('The configured display changed. Reopen the panel and try again.')
-            baseline, options, _density = choices(hyprland, profile)
+            original, baseline, options, _density = choices(hyprland, profile)
+            exact_rule = profile.get('exactRule', False)
             if not any((option['width'], option['height']) == (target['width'], target['height'])
                        and target['refreshRate'] in option['rates'] and target['scale'] in option['scales']
                        for option in options):
@@ -367,7 +378,7 @@ def worker(directory, hyprland, profile_path, target, preview_seconds=PREVIEW_SE
             baseline = dict(baseline, refreshRate=restore_rate, scale=restore_scale)
             hyprland.verify_lua()
             if stop or decision(directory) == 'cancel':
-                state, message = 'reverted', 'Preview cancelled.'
+                state, message = 'reverted', ''
                 return
 
             deadline = now() + preview_seconds
@@ -380,13 +391,16 @@ def worker(directory, hyprland, profile_path, target, preview_seconds=PREVIEW_SE
 
             # Arm rollback before sending the mutating request: even a timed-out
             # hyprctl client may already have handed the rule to the compositor.
+            # Lua updates an existing rule with the same output selector. Only
+            # mutate geometry so that a connector-specific rule keeps its color options.
             changed = True
             hyprland.apply(target)
-            if not verify(hyprland, target, min(deadline, now() + 4), still_previewing):
+            if not verify(hyprland, target, min(deadline, now() + 4), still_previewing, original,
+                          exact_rule=exact_rule):
                 if decision(directory) == 'cancel':
-                    state, message = 'reverted', 'Previous display settings restored.'
+                    state, message = 'reverted', ''
                 else:
-                    raise DisplayError('Could not verify the requested live display settings.')
+                    raise DisplayError('Could not verify the requested mode with the original color settings.')
             else:
                 # Give the user the full window after the mode has been verified.
                 deadline = now() + preview_seconds
@@ -394,23 +408,20 @@ def worker(directory, hyprland, profile_path, target, preview_seconds=PREVIEW_SE
                 while permitted():
                     action = decision(directory)
                     if action == 'cancel':
-                        state, message = 'reverted', 'Previous display settings restored.'
+                        state, message = 'reverted', ''
                         break
                     if action == 'keep':
-                        if not verify(hyprland, target, min(deadline, now() + 1), permitted):
+                        if not verify(hyprland, target, min(deadline, now() + 1), permitted, original,
+                                      exact_rule=exact_rule):
                             raise DisplayError('The requested mode is no longer active or confirmation expired.')
-                        save_profile(profile_path, target, revision, mode, permitted)
+                        saved = {**target, 'exactRule': exact_rule} if 'exactRule' in profile else target
+                        save_profile(profile_path, saved, revision, mode, permitted)
                         changed = False
-                        state = 'kept'
-                        message = ('Saved display settings. Hyprland reloads them from the included file.'
-                                   if standalone(profile_path) else
-                                   'Saved to dotfiles. Rebuild to make this the NixOS default.')
+                        state, message = 'kept', ''
                         break
                     time.sleep(0.08)
                 else:
-                    state = 'reverted'
-                    message = ('Preview interrupted. Previous display settings restored.' if stop else
-                               'Preview expired. Previous display settings restored.')
+                    state, message = 'reverted', ''
         except DisplayError as exc:
             state, message = 'error', str(exc)
         except (OSError, ValueError) as exc:
@@ -421,7 +432,7 @@ def worker(directory, hyprland, profile_path, target, preview_seconds=PREVIEW_SE
                 for _attempt in range(2):
                     try:
                         hyprland.apply(baseline)
-                        if verify(hyprland, baseline, now() + 2, lambda: True, strict=False):
+                        if verify(hyprland, baseline, now() + 2, lambda: True, original, strict=False):
                             restored = True
                             break
                     except DisplayError:
@@ -485,9 +496,13 @@ def main(args):
             hyprland.verify_lua()
             fallback = discover(hyprland) if standalone(path) and not path.exists() else None
             profile, _revision, _mode = read_profile(path, fallback)
-            live, options, density = choices(hyprland, profile)
+            monitor, live, options, density = choices(hyprland, profile)
+            connector = live['connector']
+            model = monitor.get('model')
+            name = ('Built-in Display' if BUILT_IN.fullmatch(connector) else
+                    f'{model.strip()} ({connector})' if isinstance(model, str) and model.strip() else connector)
             return dict(live=live, saved=profile, options=options, density=density,
-                        name='Built-in Display',
+                        name=name,
                         standalone=standalone(path), initialized=fallback is None)
         target = validate(json.loads(params[1]))
         read_profile(path, target)

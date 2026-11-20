@@ -86,7 +86,10 @@ class DisplayTest(unittest.TestCase):
 
     def assert_restored(self, directory, process, state='reverted', expected_file=None):
         self.assertEqual(process.wait(timeout=10), 0)
-        self.assertEqual(display.read_status(directory)['state'], state, display.read_status(directory))
+        status = display.read_status(directory)
+        self.assertEqual(status['state'], state, status)
+        if state == 'reverted':
+            self.assertEqual(status['message'], '')
         self.assertEqual(self.profile.read_bytes(), self.original if expected_file is None else expected_file)
         self.assertTrue(display.same_settings(self.hypr.current('eDP-1')[1], BASE))
 
@@ -98,6 +101,69 @@ class DisplayTest(unittest.TestCase):
         self.assertNotIn(1.333333, display.scale_options(1366, 768, 1.33333))
         self.assertEqual(data['saved'], BASE)
         self.assertNotIn('applies', self.fake_state())
+
+    def test_standalone_external_display_bootstraps_and_saves(self):
+        self.use_lua(profile=None)
+        self.fake(monitor=dict(MONITOR, name='HDMI-A-1', model='External monitor'))
+        code, data = self.cli('inspect', self.profile)
+        self.assertEqual(code, 0, data)
+        self.assertEqual(data['name'], 'External monitor (HDMI-A-1)')
+        self.assertFalse(data['initialized'])
+        target = dict(TARGET, connector='HDMI-A-1')
+        directory, process = self.launch(target)
+        self.wait_preview(directory)
+        display.request(directory, 'keep')
+        self.assertEqual(process.wait(timeout=8), 0)
+        status = display.read_status(directory)
+        self.assertEqual(status['state'], 'kept')
+        self.assertEqual(status['message'], '')
+        self.assertEqual(display.read_profile(self.profile)[0], target)
+
+    def test_hdr_connector_rule_previews_reverts_and_saves(self):
+        baseline = dict(BASE, connector='DP-4')
+        target = dict(TARGET, connector='DP-4')
+        color = dict(currentFormat='XBGR2101010', colorManagementPreset='hdredid', sdrBrightness=0.7)
+        self.fake(monitor=dict(MONITOR, name='DP-4') | color)
+        self.profile.write_text(json.dumps(baseline))
+        code, data = self.cli('inspect', self.profile)
+        self.assertEqual(code, 1, data)
+        self.assertIn('exactRule', data['error'])
+        baseline['exactRule'] = True
+        self.profile.write_text(json.dumps(baseline))
+        code, data = self.cli('inspect', self.profile)
+        self.assertEqual(code, 0, data)
+        directory, process = self.launch(target)
+        self.wait_preview(directory)
+        display.request(directory, 'cancel')
+        self.assertEqual(process.wait(timeout=8), 0)
+        self.assertEqual(display.read_status(directory)['state'], 'reverted')
+        self.assertEqual(json.loads(self.profile.read_text()), baseline)
+        monitor, live = self.hypr.current('DP-4', exact_rule=True)
+        self.assertTrue(display.same_settings(live, baseline))
+        self.assertEqual({key: monitor[key] for key in color}, color)
+        directory, process = self.launch(target, token='c' * 32)
+        self.wait_preview(directory)
+        display.request(directory, 'keep')
+        self.assertEqual(process.wait(timeout=8), 0)
+        self.assertEqual(display.read_status(directory)['state'], 'kept')
+        self.assertEqual(json.loads(self.profile.read_text()), dict(target, exactRule=True))
+
+    def test_color_change_cancels_unverified_preview(self):
+        baseline = dict(BASE, connector='DP-4', exactRule=True)
+        self.profile.write_text(json.dumps(baseline))
+        self.fake(monitor=dict(MONITOR, name='DP-4', colorManagementPreset='hdredid'),
+                  color_first={'colorManagementPreset': 'srgb'})
+        directory, process = self.launch(dict(TARGET, connector='DP-4'), duration=0.6)
+        self.assertEqual(process.wait(timeout=8), 0)
+        self.assertEqual(display.read_status(directory)['state'], 'error')
+        self.assertIn('original color settings', display.read_status(directory)['message'])
+        self.assertEqual(json.loads(self.profile.read_text()), baseline)
+        self.assertEqual(self.fake_state()['monitor']['colorManagementPreset'], 'hdredid')
+
+    def test_connector_disallows_lua_and_selector_syntax(self):
+        for connector in ('desc:DP-4', 'DP-4"', 'DP-4;foo', '*', 'DP-4\n'):
+            with self.subTest(connector=connector), self.assertRaises(display.DisplayError):
+                display.monitor_rule(dict(TARGET, connector=connector))
 
     def test_timeout_restores_live_baseline_not_saved_profile(self):
         self.profile.write_text(json.dumps(dict(BASE, scale=1)))

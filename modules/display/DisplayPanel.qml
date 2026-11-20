@@ -50,10 +50,11 @@ PanelShell {
   property int rateIndex: -1
   property int scaleIndex: -1
   property int rotationIndex: 0
-  readonly property bool builtInScreen: !!info || (!!screen && /^(eDP|LVDS|DSI)-/.test(screen.name))
+  readonly property bool builtInScreen: !!screen && /^(eDP|LVDS|DSI)-[0-9]+$/.test(screen.name)
   readonly property var shownModes: {
     if (!info) return []
     const all = info.options
+    if (!builtInScreen) return all
     const nativeMode = all[all.length - 1]
     if (!nativeMode) return []
     const ratio = nativeMode.width / nativeMode.height
@@ -99,6 +100,10 @@ PanelShell {
   function load(preserveMessage) {
     info = null
     if (!preserveMessage) { message = ""; failed = false }
+    if (Quickshell.screens.length !== 1) {
+      message = "Display previews are only supported with one connected display."
+      return
+    }
     if (!profilePath) {
       message = "Set display.profilePath or display.standalonePath to a writable display profile to enable previews."
       return
@@ -133,7 +138,7 @@ PanelShell {
 
   function preview() {
     if (!opened || !editing || !changed || !mode || rateIndex < 0 || scaleIndex < 0) return
-    message = "Checking the display…"
+    message = ""
     failed = false
     phase = "launching"
     run("start", [profilePath, JSON.stringify({version: 1, connector: info.live.connector,
@@ -202,7 +207,7 @@ PanelShell {
       if (op === "inspect") {
         if (!data.options || !data.live) return
         root.info = data
-        Backlight.read()
+        if (root.builtInScreen) Backlight.read()
         var live = data.live
         root.rotationIndex = live.transform || 0
         var index = root.shownModes.findIndex(option => option.width === live.width && option.height === live.height)
@@ -226,8 +231,8 @@ PanelShell {
           root.token = ""
           root.phase = ""
           root.pendingDecision = ""
-          root.message = data.message || "Display preview ended."
           root.failed = data.state === "error"
+          root.message = root.failed ? (data.message || "Display preview failed.") : ""
           if (root.opened) Qt.callLater(function() { if (root.opened && !task.running) root.load(true) })
         }
       }
@@ -561,7 +566,7 @@ PanelShell {
         text: root.phase === "preview" ? "Keep these settings? Reverting in " + root.seconds + "s."
           : root.phase === "deciding" ? "Finishing preview…"
           : root.token || root.phase === "launching" ? "Applying and verifying the display settings…"
-          : root.message || (root.info ? "" : "Loading display settings…")
+          : root.message
       }
 
       RowLayout {
