@@ -8,6 +8,7 @@ check_only=false
 uninstall=false
 enable_service=false
 disable_service=false
+integrate_display=true
 
 usage() {
   printf '%s\n' \
@@ -15,6 +16,7 @@ usage() {
     '       ./install.sh [--prefix DIR] --disable-service' \
     '       ./install.sh [--prefix DIR] --uninstall' \
     '' \
+    'Use --no-display-integration to leave your Hyprland Lua config untouched.' \
     'Installs or updates Omashell for the current user. User config and state are kept on uninstall.'
 }
 
@@ -30,6 +32,7 @@ while (($#)); do
       service_target=$2
       shift 2
       ;;
+    --no-display-integration) integrate_display=false; shift ;;
     --check) check_only=true; shift ;;
     --enable-service) enable_service=true; shift ;;
     --disable-service) disable_service=true; shift ;;
@@ -139,6 +142,9 @@ if [[ $uninstall == true ]]; then
   fi
   if [[ -L $link && $(readlink -- "$link") == "$target/bin/omashell" ]]; then rm -- "$link"; fi
   if [[ -L $bin_home/omasnap && $(readlink -- "$bin_home/omasnap") == "$target/bin/omasnap" ]]; then rm -- "$bin_home/omasnap"; fi
+  if [[ $integrate_display == true ]] && command -v python3 >/dev/null 2>&1; then
+    python3 "$here/scripts/setup-display.py" --remove
+  fi
   rm -rf -- "$target"
   printf 'Removed Omashell from %s; user config and state were left untouched.\n' "$target"
   exit 0
@@ -238,6 +244,10 @@ if [[ -f $target/.omasnap-install && -x $target/bin/omasnap ]]; then
   ln -sfn -- "$target/bin/omasnap" "$bin_home/omasnap"
 fi
 if [[ -n $backup ]]; then rm -rf -- "$backup"; backup=''; fi
+
+if [[ $integrate_display == true ]]; then
+  python3 "$here/scripts/setup-display.py"
+fi
 
 if [[ $enable_service == true ]]; then
   mkdir -p -- "$service_dir"

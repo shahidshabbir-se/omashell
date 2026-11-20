@@ -10,11 +10,12 @@ import "../modules/bar/BarModel.js" as BarModel
 QtObject {
   id: root
 
-  readonly property string userConfigPath: {
+  readonly property string configBase: {
     var base = Quickshell.env('XDG_CONFIG_HOME')
     if (!base && Quickshell.env('HOME')) base = Quickshell.env('HOME') + '/.config'
-    return base ? base + '/omashell/shell.json' : ''
+    return (base || '').replace(/\/+$/, '')
   }
+  readonly property string userConfigPath: configBase ? configBase + '/omashell/shell.json' : ''
   readonly property string bundledConfigPath: {
     var path = String(Qt.resolvedUrl('shell.json'))
     if (path.indexOf('file://') === 0) path = path.substring(7)
@@ -30,7 +31,7 @@ QtObject {
       centerBegin: ["indicators"],
       center: ["clock"],
       centerEnd: ["worldclock", "weather"],
-      right: ["music", "bluetooth", "network", "audio", "power"]
+      right: ["music", "bluetooth", "network", "audio", "display", "power"]
     }
   })
 
@@ -48,6 +49,21 @@ QtObject {
     : defaults.version
 
   readonly property bool clipboardEnabled: configReady && !!(raw && raw.clipboard && raw.clipboard.enabled === true)
+  readonly property string displayStandalonePath: configReady && raw && raw.display && typeof raw.display.standalonePath === 'string'
+    ? raw.display.standalonePath : ''
+  readonly property string explicitDisplayProfilePath: configReady && raw && raw.display && typeof raw.display.profilePath === 'string'
+    ? raw.display.profilePath : ''
+  readonly property string displayProfilePath: displayStandalonePath || explicitDisplayProfilePath
+    || (configReady && installerDisplayEnabled ? configBase + '/hypr/omashell-display.lua' : '')
+  property bool installerDisplayEnabled: false
+  property FileView installerDisplayReceipt: FileView {
+    path: root.userConfigDirectory ? root.userConfigDirectory + '/standalone-display' : ''
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: root.installerDisplayEnabled = text() === 'omashell-standalone-display-v1\n'
+    onLoadFailed: root.installerDisplayEnabled = false
+  }
 
   readonly property var bar: {
     var sourceConfig = root.raw || root.defaults

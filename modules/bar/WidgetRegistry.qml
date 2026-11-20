@@ -23,6 +23,7 @@ QtObject {
     network: Qt.resolvedUrl("widgets/network/Network.qml"),
     audio: Qt.resolvedUrl("widgets/audio/Audio.qml"),
     music: Qt.resolvedUrl("widgets/music/MusicButton.qml"),
+    display: Qt.resolvedUrl("widgets/display/Display.qml"),
     power: Qt.resolvedUrl("widgets/power/Power.qml")
   })
 

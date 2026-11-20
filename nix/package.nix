@@ -9,6 +9,8 @@
   bash,
   coreutils,
   python3,
+  systemd,
+  brightnessctl,
   curl,
   networkmanager,
   wireplumber,
@@ -35,6 +37,8 @@ let
     bash
     coreutils
     python3
+    systemd
+    brightnessctl
     curl
     networkmanager
     wireplumber
@@ -60,7 +64,8 @@ stdenvNoCC.mkDerivation {
 
   installPhase = ''
     runHook preInstall
-    install -d "$out/share/omashell/bin" "$out/bin"
+    install -d "$out/share/omashell/bin" "$out/share/applications" "$out/bin"
+    ln -s "${quickshell}/share/applications/org.quickshell.desktop" "$out/share/applications/org.quickshell.desktop"
     cp -a assets common config modules shell.qml "$out/share/omashell/"
     install -m755 bin/omashell "$out/bin/omashell"
     install -m755 bin/omashell-open-screenshot bin/omashell-screenshot "$out/share/omashell/bin/"

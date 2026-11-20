@@ -67,7 +67,7 @@ Arrange widgets in `left`, `centerBegin`, `center`, `centerEnd`, and `right`; ch
     ],
     "center": ["clock"],
     "centerEnd": ["worldclock", "weather"],
-    "right": ["music", "bluetooth", "network", "audio", "power"]
+    "right": ["music", "bluetooth", "network", "audio", "display", "power"]
   }
 }
 ```
@@ -94,6 +94,7 @@ Other tools and services are only needed for the features you use:
 | Stay awake | `systemd-inhibit` and a working systemd inhibitor service |
 | Screenshots | `omasnap`; `xdg-open` to open saved images |
 | Clipboard history | `wl-copy` and `wl-paste` (wl-clipboard); `wtype` for automatic paste |
+| [Display settings](docs/installation.md#display-settings-panel) | `brightnessctl` for laptop brightness; Hyprland Lua configuration and `systemd-run` with a user manager for mode previews |
 
 Notification delivery requires the shell to own the desktop notification service; another running notification daemon can prevent it from registering. The installer can build Omasnap if it is not already available; that requires additional build tools and libraries listed in the [installation guide](docs/installation.md).
 
@@ -113,4 +114,4 @@ Check QML and Bash syntax with:
 ./lint.sh
 ```
 
-Live testing can affect desktop state and use network services.
+Live testing can affect desktop state and use network services. If `omashell.service` is running, stop it before launching the checkout in the same session and start it again when finished. Only one notification server can own `org.freedesktop.Notifications` on a session bus. To run both copies, use a nested Hyprland session on a separate D-Bus session bus.

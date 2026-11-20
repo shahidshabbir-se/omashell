@@ -27,6 +27,7 @@
       "bluetooth",
       "network",
       "audio",
+      "display",
       "power"
     ]
   }

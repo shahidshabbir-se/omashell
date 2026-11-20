@@ -27,7 +27,7 @@ Use a session target that exists in your setup, such as `hyprland-session.target
 ./install.sh --disable-service
 ```
 
-The installer does not install distribution packages or edit Hyprland configuration. `./bin/omashell` runs directly from a development checkout.
+The installer does not install distribution packages. On Arch Linux and other standalone installs, it adds a marked Display include to an existing, local `hyprland.lua` and configures Omashell to use it. Pass `--no-display-integration` to leave Hyprland untouched. The installer skips symlinked configs, existing explicit display profiles, and unmanaged files with the same name. `./bin/omashell` runs directly from a development checkout.
 
 Configuration overrides live in `${XDG_CONFIG_HOME:-~/.config}/omashell/shell.json`. If absent, Omashell uses the bundled `config/shell.json` defaults. Notification and widget state remains under `$XDG_STATE_HOME/omashell` (or `~/.local/state/omashell`).
 
@@ -93,3 +93,92 @@ Use **↑/↓** or **Ctrl+K/Ctrl+J** to select, and press **Enter** or click to 
 While clipboard history is enabled, Omashell captures text, PNG images, and `text/uri-list` file selections using `wl-clipboard`. History is local and unencrypted, stored in `${XDG_STATE_HOME:-~/.local/state}/omashell/clipboard/`, with up to 100 entries and 32 MiB of clipboard payloads. It skips clipboard offers marked sensitive, but not secrets copied by apps that omit that hint. Clear the history before disabling it if you don't want prior entries to remain on disk. Disabling history stops recording; clearing history does not clear the system clipboard.
 
 The picker layout and shortcuts are inspired by [Omarchy's clipboard menu](https://github.com/omacom/omarchy/tree/b20d7876f5ec6a45d18b9e4383dc4b6d9e8492ab/shell/plugins/clipboard). Omashell does not use Omarchy's tools or history files.
+
+## Display settings panel
+
+The Display widget appears on the right by default, between Audio and Power. If you set your own `bar.right`, add `"display"` where you want it. You can also open the panel with `omashell ipc call omashell toggleDisplay`. The panel and bar icon can adjust the built-in brightness using `brightnessctl` when an unambiguous kernel backlight is available. Brightness is immediate and does not edit the profile. Scroll over the icon on the laptop display to adjust brightness in 5% steps.
+
+Mode previews need one writable display profile. Choose the form that matches how Hyprland gets its monitor rule:
+
+- `display.standalonePath` — a `.lua` fragment Omashell generates and updates. Hyprland loads it directly, so a saved setting survives config reloads and new sessions without NixOS. This is the option for other Linux distributions.
+- `display.profilePath` — the version 1 JSON file described below, read by your Nix configuration. **Keep** saves it, and a rebuild makes it part of the NixOS generation.
+
+When both are set, `display.standalonePath` takes precedence.
+
+### Standalone Linux (no NixOS)
+
+On a standard Arch Linux or other standalone installation, `./install.sh` sets up Display integration automatically if you already have a local `~/.config/hypr/hyprland.lua`. Open **Display**, preview changes, and choose **Keep**. There is no file to create or include manually. Uninstall removes the installer-managed include and leaves the saved display profile in place.
+
+If you opted out, use a symlinked or custom Hyprland configuration, or run from the checkout without the installer, set `display.standalonePath` in `~/.config/omashell/shell.json` (merge it with any existing settings):
+
+```json
+{"display":{"standalonePath":"/home/you/.config/hypr/omashell-display.lua"}}
+```
+
+Include that dedicated file after your fallback monitor rules. Use a guarded include so the first login works before the panel creates it:
+
+```lua
+-- ~/.config/hypr/hyprland.lua
+local display_path = "/home/you/.config/hypr/omashell-display.lua"
+local display_file = io.open(display_path, "r")
+if display_file then
+  display_file:close()
+  dofile(display_path)
+end
+```
+
+The file does not need to exist beforehand. On first **Keep**, Omashell creates it with mode `0644`; its directory must already exist and be writable. Omashell owns the whole file and rewrites it atomically. The first line is a versioned header, followed by one generated `hl.monitor` rule:
+
+```lua
+-- omashell-display-profile: {"connector":"eDP-1","height":1080,"refreshRate":60,"scale":1.3333,"version":1,"width":1920}
+hl.monitor({ output = "eDP-1", mode = "1920x1080@60.000000", position = "auto", scale = 1.333300 })
+```
+
+Do not edit that file by hand. Omashell reads the header, checks that the body exactly matches the header, and refuses to overwrite a file it does not recognize. To change settings, use the panel; to keep your own rules, include a separate file instead and leave this path unset.
+
+Hyprland applies the fragment on startup and on `hyprctl reload`. Run a reload after **Keep** only if you need the saved rule restored immediately and the live mode was already reverted.
+
+### NixOS / Home Manager JSON profile
+
+With Home Manager, set `programs.omashell.settings.display.profilePath` to the checkout path **as a string**, not a Nix path value that would be copied into the store.
+
+For example, track `hosts/nix/comet/display.json` in your dotfiles and have your Nix config read it with `builtins.fromJSON (builtins.readFile ./hosts/nix/comet/display.json)` (relative to the flake root). The version 1 format is:
+
+```json
+{
+  "version": 1,
+  "connector": "eDP-1",
+  "width": 1920,
+  "height": 1080,
+  "refreshRate": 60,
+  "scale": 1.3333
+}
+```
+
+For an existing Home Manager configuration using `configType = "lua"`, the minimal integration is:
+
+```nix
+# In a module at the root of your dotfiles. Replace both example paths.
+{ ... }:
+let
+  d = builtins.fromJSON (builtins.readFile ./hosts/comet/display.json);
+in {
+  programs.omashell.enable = true;
+  programs.omashell.settings.display.profilePath = "/home/you/dotfiles/hosts/comet/display.json";
+  wayland.windowManager.hyprland.settings.monitor = [{
+    output = d.connector;
+    mode = "${toString d.width}x${toString d.height}@${toString d.refreshRate}";
+    position = "auto";
+    scale = d.scale;
+    transform = d.transform or 0;
+  }];
+}
+```
+
+Use this in place of the existing rule for that connector, not alongside it. Add the new profile to Git so a local Git flake can see it. Rebuild once to activate the integration, then rebuild after **Keep** to include the saved profile in a new NixOS generation. Keep one profile per host.
+
+The current panel handles one built-in, unmirrored SDR output with default color and no VRR. It can rotate by 0°, 90°, 180°, or 270°; the optional `transform` profile field stores those values as `0` through `3`. It requires Hyprland Lua monitor control and `systemd-run` with a reachable systemd user manager; it refuses previews without an independent watchdog. It does not support custom modelines, HDR, mirroring, or multi-monitor layouts, and does not edit Hyprland's generated config. Without a systemd user manager, brightness still works where `brightnessctl` does, but mode previews are unavailable. **Text size** applies to Omashell, not GTK apps or terminals.
+
+The card layout is inspired by [Omarchy's monitor panel](https://github.com/omacom/omarchy/tree/b20d7876f5ec6a45d18b9e4383dc4b6d9e8492ab/shell/plugins/panels/monitor). The Omashell panel uses its own controls and backend and does not require Omarchy.
+
+Selecting a scale, resolution, refresh rate, or rotation immediately previews the change and verifies it against Hyprland. **Keep** and **Revert** appear only during the preview. The watchdog restores the previous live mode on **Revert**, panel dismissal, or after 15 seconds without confirmation, including if the shell restarts. **Keep** atomically updates the profile without overwriting a detected edit made during preview. It does not rebuild, commit, or use `sudo`. In NixOS mode, rebuild to make the saved rule part of your generation; a reload or new session before then restores the previously built settings. In standalone mode, the included fragment is the saved rule.

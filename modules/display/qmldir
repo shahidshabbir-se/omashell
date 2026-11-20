@@ -1,0 +1,3 @@
+module qs.modules.display
+DisplayPanel 1.0 DisplayPanel.qml
+singleton Backlight 1.0 Backlight.qml

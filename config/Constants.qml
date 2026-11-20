@@ -1,7 +1,10 @@
 pragma Singleton
 import QtQuick
+import Quickshell
+import Quickshell.Io
 
 QtObject {
+  id: root
   readonly property int cornerRadius: 0
   readonly property int barHeight: 28
   readonly property int gap: 5
@@ -10,13 +13,31 @@ QtObject {
   readonly property int deviceRowPaddingY: 12
 
   readonly property string fontFamily: "JetBrainsMono Nerd Font"
-  readonly property int fontCaption: 10
-  readonly property int fontBodySmall: 11
-  readonly property int fontBody: 12
-  readonly property int fontSubtitle: 13
-  readonly property int fontTitle: 14
-  readonly property int fontHeading: 16
-  readonly property int fontDisplay: 24
+  readonly property int fontCaption: scaledFont(10)
+  readonly property int fontBodySmall: scaledFont(11)
+  readonly property int fontBody: textSize
+  readonly property int fontSubtitle: scaledFont(13)
+  readonly property int fontTitle: scaledFont(14)
+  readonly property int fontHeading: scaledFont(16)
+  readonly property int fontDisplay: scaledFont(24)
+  readonly property var textSizes: [9, 10, 11, 12, 14, 16, 20]
+  property int textSize: 12
+  function scaledFont(base) { return Math.round(base * textSize / 12) }
+
+  property FileView textSizeFile: FileView {
+    path: {
+      var base = Quickshell.env('XDG_STATE_HOME')
+      if (!base && Quickshell.env('HOME')) base = Quickshell.env('HOME') + '/.local/state'
+      return base.startsWith('/') ? base + '/omashell/text-size' : ''
+    }
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: {
+      var size = Number(text().trim())
+      if (root.textSizes.includes(size)) root.textSize = size
+    }
+  }
 
                                                                                
                                                                              

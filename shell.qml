@@ -10,6 +10,7 @@ import qs.modules.bar.widgets.audio
 import qs.modules.bar.widgets.music
 import qs.modules.bar.widgets.power
 import qs.modules.clipboard
+import qs.modules.display
 import qs.modules.notifications
 import qs.modules.visualizer
 import qs.modules.volume
@@ -29,6 +30,7 @@ ShellRoot {
     audio: audioPanel,
     music: musicPanel,
     power: powerPanel,
+    display: displayPanel,
     notifications: notificationsPanel
   })
 
@@ -48,6 +50,7 @@ ShellRoot {
     musicPanel.close()
     powerPanel.close()
     clipboardMenu.close()
+    displayPanel.dismiss()
     notificationsPanel.close()
   }
 
@@ -63,6 +66,7 @@ ShellRoot {
     if (target !== musicPanel) musicPanel.close()
     if (target !== powerPanel) powerPanel.close()
     clipboardMenu.close()
+    if (target !== displayPanel) displayPanel.dismiss()
     if (target !== notificationsPanel) notificationsPanel.close()
     target.anchorX = x
     target.toggle()
@@ -146,6 +150,10 @@ ShellRoot {
     id: clipboardMenu
     captureEnabled: Config.clipboardEnabled
   }
+  DisplayPanel {
+    id: displayPanel
+    profilePath: Config.displayProfilePath
+  }
   WifiSharePanel { id: wifiSharePanel }
   SpeedTestPanel { id: speedTestPanel }
   Visualizer {}
@@ -173,6 +181,7 @@ ShellRoot {
       if (!clipboardMenu.opened) shell.closePanels()
       clipboardMenu.toggle()
     }
+    function toggleDisplay(): void { shell.showPanel(displayPanel, -1) }
     function toggleNotifications(): void { shell.showPanel(notificationsPanel, -1) }
     function toggleNotificationKeyboard(): void {
       if (NotificationService.keyboardMode) NotificationService.stopKeyboard()
