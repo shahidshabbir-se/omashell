@@ -72,7 +72,8 @@ ShellRoot {
     if (target !== displayPanel) displayPanel.dismiss()
     if (target !== wallpaperPanel) wallpaperPanel.close()
     if (target !== notificationsPanel) notificationsPanel.close()
-    target.anchorX = x
+    // Centered overlays do not take a bar anchor.
+    if (target.anchorX !== undefined) target.anchorX = x
     target.toggle()
   }
 
