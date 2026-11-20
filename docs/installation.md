@@ -16,7 +16,7 @@ This copies the shell to `${XDG_DATA_HOME:-~/.local/share}/omashell` and creates
 
 ### Wallpapers
 
-The `wallpaper` bar widget (also available through `omashell ipc call omashell toggleWallpaper`) shows personal and downloaded backgrounds together in one carousel. It reads `~/Pictures/Wallpapers` by default. To use a different set of files or folders, set `wallpaper.sources` in `shell.json`:
+Open the wallpaper picker with `omashell ipc call omashell toggleWallpaper` or bind that command in Hyprland. There is no bar widget. The picker shows personal and downloaded backgrounds together in one carousel. It reads `~/Pictures/Wallpapers` by default. To use a different set of files or folders, set `wallpaper.sources` in `shell.json`:
 
 ```json
 {
@@ -100,7 +100,7 @@ programs.omashell.wallpaper.omarchy = {
 };
 ```
 
-Add `"wallpaper"` to your bar if you override its widget list. Nix fetches the pinned source, but Omashell only lists the selected directories' image files and never runs any Omarchy code. To refresh the source, run `nix flake update omarchy-wallpapers` in your configuration and rebuild. An applied image from the Nix store is copied to user data so garbage collection cannot remove your active wallpaper.
+Nix fetches the pinned source, but Omashell only lists the selected directories' image files and never runs any Omarchy code. To refresh the source, run `nix flake update omarchy-wallpapers` in your configuration and rebuild. An applied image from the Nix store is copied to user data so garbage collection cannot remove your active wallpaper.
 
 ## Screenshot helpers
 

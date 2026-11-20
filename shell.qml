@@ -32,7 +32,6 @@ ShellRoot {
     music: musicPanel,
     power: powerPanel,
     display: displayPanel,
-    wallpaper: wallpaperPanel,
     notifications: notificationsPanel
   })
 

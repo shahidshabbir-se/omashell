@@ -11,7 +11,7 @@ trap cleanup EXIT
 chmod 700 "$runtime"
 mkdir -p "$runtime/config" "$runtime/home"
 cp -a "$repo"/{common,config,modules,assets} "$runtime/"
-sed '/target: "omashell"/a\    function testPanel(): string { return shell.activeWidgetId }\n    function testBarClick(): void { shell.showPanelFor("wallpaper", 100) }' "$repo/shell.qml" > "$runtime/shell.qml"
+sed '/target: "omashell"/a\    function testWallpaperState(): string { return wallpaperPanel.opened ? "open" : "closed" }\n    function testBarClick(): void { shell.showPanelFor("wallpaper", 100) }\n    function testWallpaperWidget(): string { return WidgetRegistry.known("wallpaper") ? "registered" : "absent" }' "$repo/shell.qml" > "$runtime/shell.qml"
 printf '%s\n' 'output * resolution 1280x720' 'seat * fallback true' 'xwayland disable' > "$runtime/sway.conf"
 export XDG_RUNTIME_DIR="$runtime" XDG_CONFIG_HOME="$runtime/config" HOME="$runtime/home" WLR_BACKENDS=headless WLR_RENDERER=pixman WLR_LIBINPUT_NO_DEVICES=1 QT_QPA_PLATFORM=wayland
 unset WAYLAND_DISPLAY SWAYSOCK HYPRLAND_INSTANCE_SIGNATURE DBUS_SESSION_BUS_ADDRESS
@@ -32,15 +32,12 @@ for _ in {1..50}; do
   if grep -q 'Configuration Loaded' "$log"; then break; fi
   sleep .1
 done
-for trigger in toggleWallpaper testBarClick; do
-  call "$trigger" || { cat "$log"; exit 1; }
-  if [[ $(call testPanel) != wallpaper ]]; then
-    printf 'FAIL: %s did not open wallpaper\n' "$trigger" >&2
-    grep -E 'Cannot assign|ERROR' "$log" >&2 || true
-    exit 1
-  fi
-  call toggleWallpaper
-  [[ -z $(call testPanel) ]]
-done
-printf '%s\n' 'PASS: IPC opens, bar route opens, IPC toggles closed.'
+call testBarClick || { cat "$log"; exit 1; }
+[[ $(call testWallpaperWidget) == absent ]]
+[[ $(call testWallpaperState) == closed ]]
+call toggleWallpaper
+[[ $(call testWallpaperState) == open ]]
+call toggleWallpaper
+[[ $(call testWallpaperState) == closed ]]
+printf '%s\n' 'PASS: wallpaper has no bar widget and opens and closes via IPC.'
 INNER
