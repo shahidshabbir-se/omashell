@@ -9,6 +9,15 @@ PanelShell {
   layerNamespace: "omashell-music"
   cardWidth: 300
   contentPadding: 0
+  keyboard: true
+
+  Shortcut {
+    sequence: "Escape"
+    context: Qt.WindowShortcut
+    enabled: root.opened
+    onActivated: root.close()
+  }
+
   property bool entranceReady: false
   onOpenedChanged: {
     entranceReady = false
