@@ -86,7 +86,9 @@ bind = SUPER CTRL, V, exec, omashell ipc call omashell toggleClipboard
 hl.bind("SUPER + CTRL + V", hl.dsp.exec_cmd("omashell ipc call omashell toggleClipboard"))
 ```
 
-Type to search the previews, use **↑/↓** to select, and press **Enter** or click to paste. **Shift+Enter** copies without pasting. **Delete** removes the selected entry; **Shift+Delete** opens a clear-all confirmation. **Escape** clears the search before closing the picker. Automatic paste sends **Shift+Insert** with `wtype`; if `wtype` is missing or the target doesn't support that shortcut, paste manually from the clipboard.
+Type to search the previews. Click **All**, **Text**, **Links**, **Colors**, **Images**, or **Files** to filter by type, or cycle through filters with **Tab** and **Shift+Tab**. Standalone CSS hex colors show a swatch in the list and preview without changing what gets pasted.
+
+Use **↑/↓** or **Ctrl+K/Ctrl+J** to select, and press **Enter** or click to paste. **Shift+Enter** copies without pasting. **Delete** removes the selected entry; **Shift+Delete** opens a clear-all confirmation. **Escape** clears the search, then resets the filter, then closes the picker. Automatic paste sends **Shift+Insert** with `wtype`; if `wtype` is missing or the target doesn't support that shortcut, paste manually from the clipboard.
 
 While clipboard history is enabled, Omashell captures text, PNG images, and `text/uri-list` file selections using `wl-clipboard`. History is local and unencrypted, stored in `${XDG_STATE_HOME:-~/.local/state}/omashell/clipboard/`, with up to 100 entries and 32 MiB of clipboard payloads. It skips clipboard offers marked sensitive, but not secrets copied by apps that omit that hint. Clear the history before disabling it if you don't want prior entries to remain on disk. Disabling history stops recording; clearing history does not clear the system clipboard.
 

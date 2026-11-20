@@ -6,6 +6,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.common
 import qs.config
+import "ClipboardModel.js" as ClipboardModel
 
 Scope {
   id: root
@@ -22,10 +23,13 @@ Scope {
   property int selected: 0
   property string imageSource: ""
   readonly property var helper: ["python3", decodeURIComponent(String(Qt.resolvedUrl("history.py")).replace(/^file:\/\//, ""))]
-  readonly property var results: {
-    var needle = search.text.trim().toLowerCase()
-    return needle ? history.filter(entry => entry.preview.toLowerCase().includes(needle)) : history
-  }
+  readonly property var filters: [
+    { id: "all", label: "All" }, { id: "text", label: "Text" },
+    { id: "links", label: "Links" }, { id: "colors", label: "Colors" },
+    { id: "images", label: "Images" }, { id: "files", label: "Files" }
+  ]
+  property int filterIndex: 0
+  readonly property var results: ClipboardModel.filter(history, filters[filterIndex].id, search.text)
   readonly property var current: results[selected] || null
   readonly property string imageId: opened && current && current.mime === "image/png" ? current.id : ""
 
@@ -43,6 +47,7 @@ Scope {
   function close() {
     opened = false
     search.clear()
+    filterIndex = 0
     confirmClear = false
     selected = 0
     history = []
@@ -54,6 +59,26 @@ Scope {
     if (!opened || !captureEnabled) return
     if (reload.running) refreshPending = true
     else reload.running = true
+  }
+
+  function selectFilter(index) {
+    filterIndex = (index + filters.length) % filters.length
+    selected = 0
+    list.positionViewAtBeginning()
+    search.forceActiveFocus()
+  }
+
+  component ColorSwatch: Rectangle {
+    property var rgba: null
+    color: "white"
+    clip: true
+    Rectangle { width: parent.width / 2; height: parent.height; color: "#999999" }
+    Rectangle {
+      anchors.fill: parent
+      color: parent.rgba ? Qt.rgba(parent.rgba[0], parent.rgba[1], parent.rgba[2], parent.rgba[3]) : "transparent"
+      border.width: 1
+      border.color: Colors.muted
+    }
   }
 
   function moveTo(index) {
@@ -131,7 +156,7 @@ Scope {
       root.loaded = true
       if (code === 0) {
         var oldId = root.current ? root.current.id : ""
-        root.history = JSON.parse(historyOutput.text)
+        root.history = JSON.parse(historyOutput.text).map(ClipboardModel.classify)
         var index = root.results.findIndex(entry => entry.id === oldId)
         root.selected = index >= 0 ? index : Math.max(0, Math.min(root.selected, root.results.length - 1))
         Qt.callLater(function() { if (root.opened) root.moveTo(root.selected) })
@@ -250,12 +275,19 @@ Scope {
                 }
                 return
               }
+              var ctrl = event.modifiers === Qt.ControlModifier
+              var up = event.key === Qt.Key_Up || (ctrl && event.key === Qt.Key_K)
+              var down = event.key === Qt.Key_Down || (ctrl && event.key === Qt.Key_J)
               if (event.key === Qt.Key_Escape) {
                 if (text) clear()
+                else if (root.filterIndex) root.selectFilter(0)
                 else root.close()
-              } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Down) {
+              } else if (event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+                var backwards = event.key === Qt.Key_Backtab || (event.modifiers & Qt.ShiftModifier)
+                root.selectFilter(root.filterIndex + (backwards ? -1 : 1))
+              } else if (up || down) {
                 var count = root.results.length
-                if (count) root.moveTo((root.selected + (event.key === Qt.Key_Up ? -1 : 1) + count) % count)
+                if (count) root.moveTo((root.selected + (up ? -1 : 1) + count) % count)
               } else if (event.key === Qt.Key_PageUp || event.key === Qt.Key_PageDown) {
                 root.moveTo(root.selected + (event.key === Qt.Key_PageUp ? -6 : 6))
               } else if (event.key === Qt.Key_Delete && (event.modifiers & Qt.ShiftModifier)) {
@@ -269,6 +301,22 @@ Scope {
               } else {
                 event.accepted = false
               }
+            }
+          }
+        }
+
+        Flow {
+          Layout.fillWidth: true
+          spacing: 6
+          visible: root.captureEnabled && !root.confirmClear
+          Repeater {
+            model: root.filters
+            delegate: Button {
+              required property int index
+              required property var modelData
+              text: modelData.label
+              selected: index === root.filterIndex
+              onActivated: root.selectFilter(index)
             }
           }
         }
@@ -297,9 +345,19 @@ Scope {
               color: index === root.selected ? Colors.selection : hover.hovered ? Colors.lighterBackground : "transparent"
               HoverHandler { id: hover }
 
+              ColorSwatch {
+                anchors.left: parent.left
+                anchors.leftMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                width: 24
+                height: 24
+                rgba: row.modelData.rgba
+                visible: !!rgba
+              }
+
               Text {
                 anchors.fill: parent
-                anchors.leftMargin: 12
+                anchors.leftMargin: row.modelData.rgba ? 46 : 12
                 anchors.rightMargin: 12
                 text: (row.modelData.mime === "image/png" ? "󰋩  " : row.modelData.mime === "text/uri-list" ? "󰈙  " : "")
                   + row.modelData.preview.replace(/\s+/g, " ")
@@ -329,15 +387,26 @@ Scope {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            Text {
+            ColumnLayout {
               anchors.fill: parent
-              text: root.current && !root.imageId ? root.current.preview : ""
-              textFormat: Text.PlainText
-              wrapMode: Text.WrapAnywhere
-              elide: Text.ElideRight
-              color: Colors.foreground
-              font.family: Constants.fontFamily
-              font.pixelSize: Constants.fontTitle
+              spacing: 10
+              ColorSwatch {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 100
+                rgba: root.current ? root.current.rgba : null
+                visible: !!rgba
+              }
+              Text {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                text: root.current && !root.imageId ? root.current.preview : ""
+                textFormat: Text.PlainText
+                wrapMode: Text.WrapAnywhere
+                elide: Text.ElideRight
+                color: Colors.foreground
+                font.family: Constants.fontFamily
+                font.pixelSize: Constants.fontTitle
+              }
             }
             Image {
               anchors.fill: parent
@@ -366,7 +435,7 @@ Scope {
               text: root.confirmClear ? "Clear all clipboard history?"
                 : !root.captureEnabled ? "Set clipboard.enabled to true in Omashell’s shell.json to enable history."
                 : !root.loaded ? "Loading clipboard history…"
-                : search.text ? "No matches" : "Clipboard history is empty"
+                : root.history.length === 0 ? "Clipboard history is empty" : "No matches"
               horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.Wrap
               color: Colors.foreground
@@ -394,7 +463,7 @@ Scope {
         Text {
           Layout.fillWidth: true
           visible: root.captureEnabled
-          text: root.error || "↵ Paste   Shift+↵ Copy   Del Delete   Shift+Del Clear"
+          text: root.error || "↵ Paste   Shift+↵ Copy   Tab Filter   Del Delete   Shift+Del Clear"
           color: root.error ? Colors.red : Colors.foreground
           opacity: root.error ? 1 : 0.68
           wrapMode: Text.Wrap
