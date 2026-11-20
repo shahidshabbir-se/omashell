@@ -3,6 +3,7 @@
   stdenvNoCC,
   makeWrapper,
   quickshell,
+  qt6,
   hyprland,
   jq,
   gawk,
@@ -11,6 +12,7 @@
   python3,
   systemd,
   brightnessctl,
+  awww,
   curl,
   networkmanager,
   wireplumber,
@@ -39,6 +41,7 @@ let
     python3
     systemd
     brightnessctl
+    awww
     curl
     networkmanager
     wireplumber
@@ -74,6 +77,7 @@ stdenvNoCC.mkDerivation {
     ln -s ../share/omashell/bin/omashell-screenshot "$out/bin/omashell-screenshot"
     wrapProgram "$out/bin/omashell" \
       --prefix PATH : "${lib.makeBinPath runtimePackages}" \
+      --prefix QT_PLUGIN_PATH : "${qt6.qtimageformats}/${qt6.qtbase.qtPluginPrefix}" \
       --set OMASHELL_ROOT "$out/share/omashell" \
       --set TZDIR "${tzdata}/share/zoneinfo" \
       --set PYTHONTZPATH "${tzdata}/share/zoneinfo"

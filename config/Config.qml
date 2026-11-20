@@ -31,7 +31,7 @@ QtObject {
       centerBegin: ["indicators"],
       center: ["clock"],
       centerEnd: ["worldclock", "weather"],
-      right: ["music", "bluetooth", "network", "audio", "display", "power"]
+      right: ["music", "bluetooth", "network", "audio", "display", "wallpaper", "power"]
     }
   })
 
@@ -49,6 +49,13 @@ QtObject {
     : defaults.version
 
   readonly property bool clipboardEnabled: configReady && !!(raw && raw.clipboard && raw.clipboard.enabled === true)
+  readonly property var wallpaperLibrary: {
+    var options = (raw && raw.wallpaper) || {}
+    var library = { omarchy: options.omarchy }
+    if (options.sources !== undefined) library.sources = options.sources
+    else if (typeof options.directory === "string") library.sources = [options.directory]
+    return library
+  }
   readonly property string displayStandalonePath: configReady && raw && raw.display && typeof raw.display.standalonePath === 'string'
     ? raw.display.standalonePath : ''
   readonly property string explicitDisplayProfilePath: configReady && raw && raw.display && typeof raw.display.profilePath === 'string'

@@ -26,6 +26,24 @@ in
       };
     };
 
+    wallpaper.omarchy = {
+      enable = lib.mkEnableOption "Omarchy backgrounds in the Omashell wallpaper carousel";
+
+      source = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = null;
+        example = lib.literalExpression "inputs.omarchy-wallpapers.outPath";
+        description = "Pinned Omarchy source containing the themes directory. No Omarchy code is run.";
+      };
+
+      themes = lib.mkOption {
+        type = lib.types.nullOr (lib.types.listOf (lib.types.strMatching "[a-zA-Z0-9][a-zA-Z0-9_-]*"));
+        default = null;
+        example = [ "catppuccin" "tokyo-night" ];
+        description = "Themes to include the backgrounds from, or null for all upstream themes.";
+      };
+    };
+
     systemd = {
       enable = lib.mkEnableOption "the Omashell user service";
 
@@ -47,7 +65,18 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    programs.omashell.settings = lib.mkIf cfg.wallpaper.omarchy.enable {
+      wallpaper.omarchy = {
+        source = if cfg.wallpaper.omarchy.source == null then "" else "${cfg.wallpaper.omarchy.source}";
+        inherit (cfg.wallpaper.omarchy) themes;
+      };
+    };
+
     assertions = [
+      {
+        assertion = !cfg.wallpaper.omarchy.enable || cfg.wallpaper.omarchy.source != null;
+        message = "Set programs.omashell.wallpaper.omarchy.source to a pinned Omarchy source when enabling its backgrounds.";
+      }
       {
         assertion = !cfg.systemd.enable || cfg.systemd.target != "";
         message = "programs.omashell.systemd.target must not be empty when the service is enabled.";

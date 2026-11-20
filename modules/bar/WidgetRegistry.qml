@@ -24,6 +24,7 @@ QtObject {
     audio: Qt.resolvedUrl("widgets/audio/Audio.qml"),
     music: Qt.resolvedUrl("widgets/music/MusicButton.qml"),
     display: Qt.resolvedUrl("widgets/display/Display.qml"),
+    wallpaper: Qt.resolvedUrl("widgets/wallpaper/Wallpaper.qml"),
     power: Qt.resolvedUrl("widgets/power/Power.qml")
   })
 

@@ -13,6 +13,30 @@ Install Quickshell, Hyprland, `jq`, Python 3, and the Omasnap build dependencies
 
 This copies the shell to `${XDG_DATA_HOME:-~/.local/share}/omashell` and creates `~/.local/bin/omashell`. Add `~/.local/bin` to `PATH` if needed. To update, pull the checkout and rerun `./install.sh`. To uninstall, run `./install.sh --uninstall`; user settings and runtime state are preserved.
 
+
+### Wallpapers
+
+The `wallpaper` bar widget (also available through `omashell ipc call omashell toggleWallpaper`) shows personal and downloaded backgrounds together in one carousel. It reads `~/Pictures/Wallpapers` by default. To use a different set of files or folders, set `wallpaper.sources` in `shell.json`:
+
+```json
+{
+  "wallpaper": {
+    "sources": ["~/Pictures/Wallpapers", "~/Pictures/favorites/forest.jpg", "/mnt/media/backgrounds"]
+  }
+}
+```
+
+Use `[]` to omit personal sources. Folders are scanned one level deep. The older `wallpaper.directory` setting still works as shorthand for one local source. Browse with the arrow keys, scroll wheel, or by clicking a side preview. Press Enter or click the center preview to set it on all outputs. Install `awww` and the Qt 6 image formats plugins and start `awww-daemon` with your Wayland session if it is not already running.
+
+**Optional Omarchy wallpapers.** The standalone installer asks whether to download them on an interactive terminal; the default is to skip. Say yes to choose themes by name or number, or choose `all`. For unattended setups:
+
+```sh
+./install.sh --omarchy-wallpapers catppuccin,tokyo-night  # or: all
+./install.sh --no-omarchy-wallpapers                    # skip even on a terminal
+```
+
+The installer reads the current upstream catalog and downloads only image files from the requested themes, not themes, scripts, or videos. It saves them under `$XDG_DATA_HOME/omashell-wallpapers/omarchy` (default `~/.local/share/omashell-wallpapers/omarchy`), separate from personal files and the shell install. Run the same command again to add newly published images; previously downloaded copies are retained. It never sets the active wallpaper. The images come from [Omarchy upstream](https://github.com/omacom/omarchy); Omashell does not bundle or relicense them.
+
 Optional widgets need additional system tools. The dependency check lists them. Network features need NetworkManager (`nmcli`); the QR share action additionally needs `qrencode` and `ip`. Audio controls need PipeWire/WirePlumber (`wpctl`) and `pactl`; the visualizer needs `cava`; battery information uses UPower; profile controls use `powerprofilesctl`; Bluetooth controls use `bluetoothctl`; weather and city search need `curl`. Screenshot capture uses Omasnap: the installer builds the latest Omasnap release into its managed user install when no `omasnap` command is already available.
 
 To have the installer create and enable a user service:
@@ -56,6 +80,27 @@ Or import `inputs.omashell.homeManagerModules.default` into a standalone Home Ma
 The flake also exposes `packages.<system>.default` and supports `x86_64-linux` and `aarch64-linux`. Quickshell and Omashell's helper executables are included in the package runtime environment. Nix installs the shell under the store; do not edit that copy. Use the Home Manager settings option or the XDG config override instead.
 
 The Nix package includes Omasnap and the Omashell screenshot clients; it provides command-line clients, not system daemons. Enable/configure NetworkManager, PipeWire/WirePlumber, UPower, Bluetooth, and Hyprland in the NixOS configuration when those features are wanted.
+
+### Optional Omarchy wallpapers on NixOS
+
+Add an upstream source input to your flake when you want these wallpapers. The lock file pins the revision; the input is not needed for personal sources.
+
+```nix
+# flake.nix inputs
+inputs.omarchy-wallpapers = {
+  url = "github:omacom/omarchy";
+  flake = false;
+};
+
+# Home Manager user configuration, with your flake inputs in scope
+programs.omashell.wallpaper.omarchy = {
+  enable = true;
+  source = inputs.omarchy-wallpapers.outPath;
+  themes = [ "catppuccin" "tokyo-night" ]; # omit or set null for all themes
+};
+```
+
+Add `"wallpaper"` to your bar if you override its widget list. Nix fetches the pinned source, but Omashell only lists the selected directories' image files and never runs any Omarchy code. To refresh the source, run `nix flake update omarchy-wallpapers` in your configuration and rebuild. An applied image from the Nix store is copied to user data so garbage collection cannot remove your active wallpaper.
 
 ## Screenshot helpers
 

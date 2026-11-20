@@ -9,6 +9,8 @@ uninstall=false
 enable_service=false
 disable_service=false
 integrate_display=true
+wallpaper_selection=prompt
+wallpaper_themes=
 
 usage() {
   printf '%s\n' \
@@ -16,6 +18,8 @@ usage() {
     '       ./install.sh [--prefix DIR] --disable-service' \
     '       ./install.sh [--prefix DIR] --uninstall' \
     '' \
+    'Use --omarchy-wallpapers all|THEME[,THEME...] to download backgrounds without prompting.' \
+    'Use --no-omarchy-wallpapers to skip the download prompt.' \
     'Use --no-display-integration to leave your Hyprland Lua config untouched.' \
     'Installs or updates Omashell for the current user. User config and state are kept on uninstall.'
 }
@@ -32,6 +36,13 @@ while (($#)); do
       service_target=$2
       shift 2
       ;;
+    --omarchy-wallpapers)
+      (($# >= 2)) && [[ -n $2 && $2 != -* ]] || { usage >&2; exit 2; }
+      wallpaper_selection=explicit
+      wallpaper_themes=$2
+      shift 2
+      ;;
+    --no-omarchy-wallpapers) wallpaper_selection=skip; shift ;;
     --no-display-integration) integrate_display=false; shift ;;
     --check) check_only=true; shift ;;
     --enable-service) enable_service=true; shift ;;
@@ -75,7 +86,7 @@ check_dependencies() {
   for command_name in hyprctl jq wl-copy wl-paste; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  required: %s ✓\n' "$command_name"; else printf '  required: %s MISSING\n' "$command_name"; missing=1; fi
   done
-  for command_name in nmcli curl wpctl pactl cava upower powerprofilesctl bluetoothctl qrencode ip xdg-open wtype; do
+  for command_name in nmcli curl wpctl pactl cava awww upower powerprofilesctl bluetoothctl qrencode ip xdg-open wtype; do
     if command -v "$command_name" >/dev/null 2>&1; then printf '  optional: %s ✓\n' "$command_name"; else printf '  optional: %s not found\n' "$command_name"; fi
   done
 
@@ -231,6 +242,15 @@ elif ! command -v omasnap >/dev/null 2>&1; then
   build_omasnap "$stage/bin/omasnap"
   printf '%s\n' 'omashell-managed-omasnap-v1' > "$stage/.omasnap-install"
 fi
+case "$wallpaper_selection" in
+  explicit) python3 "$here/modules/wallpaper/import_omarchy.py" "$wallpaper_themes" ;;
+  prompt)
+    if [[ -t 0 && -t 1 ]]; then
+      python3 "$here/modules/wallpaper/import_omarchy.py" ||
+        printf '%s\n' 'Continuing without the remaining Omarchy wallpapers.' >&2
+    fi
+    ;;
+esac
 printf '%s\n' 'omashell-user-install-v1' > "$stage/.omashell-install"
 
 if [[ -e $target ]]; then

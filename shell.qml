@@ -14,6 +14,7 @@ import qs.modules.display
 import qs.modules.notifications
 import qs.modules.visualizer
 import qs.modules.volume
+import qs.modules.wallpaper
 import qs.config
 
 ShellRoot {
@@ -31,6 +32,7 @@ ShellRoot {
     music: musicPanel,
     power: powerPanel,
     display: displayPanel,
+    wallpaper: wallpaperPanel,
     notifications: notificationsPanel
   })
 
@@ -51,6 +53,7 @@ ShellRoot {
     powerPanel.close()
     clipboardMenu.close()
     displayPanel.dismiss()
+    wallpaperPanel.close()
     notificationsPanel.close()
   }
 
@@ -67,6 +70,7 @@ ShellRoot {
     if (target !== powerPanel) powerPanel.close()
     clipboardMenu.close()
     if (target !== displayPanel) displayPanel.dismiss()
+    if (target !== wallpaperPanel) wallpaperPanel.close()
     if (target !== notificationsPanel) notificationsPanel.close()
     target.anchorX = x
     target.toggle()
@@ -154,6 +158,7 @@ ShellRoot {
     id: displayPanel
     profilePath: Config.displayProfilePath
   }
+  WallpaperPanel { id: wallpaperPanel; library: Config.wallpaperLibrary }
   WifiSharePanel { id: wifiSharePanel }
   SpeedTestPanel { id: speedTestPanel }
   Visualizer {}
@@ -181,6 +186,7 @@ ShellRoot {
       if (!clipboardMenu.opened) shell.closePanels()
       clipboardMenu.toggle()
     }
+    function toggleWallpaper(): void { shell.showPanel(wallpaperPanel, -1) }
     function toggleDisplay(): void { shell.showPanel(displayPanel, -1) }
     function toggleNotifications(): void { shell.showPanel(notificationsPanel, -1) }
     function toggleNotificationKeyboard(): void {
