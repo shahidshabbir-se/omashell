@@ -2,17 +2,28 @@ const assert = require('node:assert/strict')
 const { geometry, windowFor, wrap, sync, xFor, contains } = require('../../modules/wallpaper/Carousel.js')
 
 for (const [width, height] of [[2752, 1152], [1920, 1080], [1280, 800], [900, 1600], [640, 480]]) {
-  const deckWidth = Math.min(1840, width - 48)
-  const layout = geometry(deckWidth, height, width / height)
-  assert.ok(Math.abs(layout.centerWidth / layout.centerHeight - width / height) < 1e-9)
+  const deckWidth = Math.min(1822, width - 48)
+  const layout = geometry(deckWidth, height)
+  assert.ok(Math.abs(layout.centerWidth / layout.centerHeight - 768 / 475) < 1e-9)
   const rows = windowFor(0, 101, layout.radius)
-  assert.ok(rows.length <= 11)
+  assert.ok(rows.length <= 13)
   for (const {offset} of rows) {
     const x = xFor(deckWidth, layout, offset)
     const end = x + (offset ? layout.sliceWidth : layout.centerWidth)
     assert.ok(x >= 4 && end <= deckWidth - 4, `Tile ${offset} clips at ${width}×${height}`)
   }
 }
+
+for (const [width, height] of [[2752, 1152], [1920, 1080], [1280, 800]]) {
+  const deckWidth = Math.min(1822, width - 48)
+  const layout = geometry(deckWidth, height)
+  assert.deepEqual([layout.centerWidth, layout.centerHeight, layout.sliceWidth, layout.sliceHeight],
+    [768, 475, 108, 432])
+  assert.equal(xFor(deckWidth, layout, 0) - xFor(deckWidth, layout, -1), 78)
+  assert.equal(xFor(deckWidth, layout, 1) + layout.sliceWidth - (xFor(deckWidth, layout, 0) + layout.centerWidth), 78)
+}
+const compact = geometry(592, 480)
+assert.ok(compact.centerWidth < 768 && compact.centerHeight < 475)
 
 assert.equal(wrap(-1, 101), 100)
 assert.equal(wrap(102, 101), 1)

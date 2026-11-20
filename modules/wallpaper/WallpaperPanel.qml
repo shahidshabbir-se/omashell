@@ -25,7 +25,7 @@ OverlayShell {
   property int wheelDirection: 0
   readonly property int viewportWidth: width >= 320 ? width : screen?.width || 0
   readonly property int viewportHeight: height >= 200 ? height : screen?.height || 0
-  readonly property var layout: Deck.geometry(cardWidth, viewportHeight, viewportWidth / Math.max(1, viewportHeight))
+  readonly property var layout: Deck.geometry(cardWidth, viewportHeight)
   readonly property string currentKey: images[selected]?.key || ""
   readonly property bool applying: setter.running
 
@@ -33,7 +33,7 @@ OverlayShell {
   layerNamespace: "omashell-wallpaper"
   cardChrome: false
   scrimOpacity: centerReady ? 0.72 : 0.35
-  cardWidth: Math.min(1840, Math.max(1, viewportWidth - 48))
+  cardWidth: Math.min(1822, Math.max(1, viewportWidth - 48))
   padding: 0
   spacing: 14
   focusTarget: carousel
@@ -220,7 +220,7 @@ OverlayShell {
   Item {
     id: carousel
     width: root.cardWidth
-    height: Math.ceil(root.layout.centerHeight)
+    height: root.layout.centerHeight
     visible: root.images.length > 0 && root.readyToLayout
 
     function takeFocus() { forceActiveFocus() }
@@ -258,7 +258,7 @@ OverlayShell {
         required property int offset
         readonly property var image: root.images[imageIndex]
         readonly property bool selected: offset === 0
-        readonly property real bevel: Math.min(26, width / 3)
+        readonly property real bevel: root.layout.bevel
         readonly property var large: root.centerPreviews[image?.key]
         readonly property var small: root.sidePreviews[image?.key] || (large?.fallback ? null : large)
         readonly property var texture: largeImage.status === Image.Ready ? largeImage
@@ -268,7 +268,7 @@ OverlayShell {
         y: (carousel.height - height) / 2
         z: selected ? 100 : -Math.abs(offset)
         width: selected ? root.layout.centerWidth : root.layout.sliceWidth
-        height: selected ? carousel.height : carousel.height * 0.91
+        height: selected ? root.layout.centerHeight : root.layout.sliceHeight
         opacity: selected || texture ? 1 : 0
         property int placedOffset: 0
         function place(animate) {

@@ -2,15 +2,20 @@ function wrap(index, count) {
   return count ? ((index % count) + count) % count : 0
 }
 
-function geometry(width, height, outputAspect) {
-  const aspect = outputAspect || width / Math.max(1, height)
-  const centerWidth = Math.max(1, Math.min(960, width * 0.72, height * 0.60 * aspect))
-  const centerHeight = centerWidth / Math.max(aspect, 0.01)
-  const sliceWidth = Math.max(20, Math.min(115, centerWidth * 0.14))
-  const step = sliceWidth * 0.72
+// Match the quattro picker proportions. Viewport size only constrains the
+// canvas on small displays; it does not determine the crop's aspect ratio.
+function geometry(width, height) {
+  const scale = Math.max(1 / 768, Math.min(1, width * 0.84 / 768, (height - 92) / 475))
+  const centerWidth = 768 * scale
+  const centerHeight = 475 * scale
+  const sliceWidth = 108 * scale
+  const sliceHeight = 432 * scale
+  const overlap = 30 * scale
+  const bevel = 28 * scale
+  const step = sliceWidth - overlap
   const sideRoom = (width - centerWidth) / 2 - 4
-  const radius = Math.max(0, Math.min(5, Math.floor((sideRoom - sliceWidth) / step) + 1))
-  return {centerWidth, centerHeight, sliceWidth, step, radius}
+  const radius = Math.max(0, Math.min(6, Math.floor(sideRoom / step)))
+  return {centerWidth, centerHeight, sliceWidth, sliceHeight, overlap, bevel, step, radius}
 }
 
 function windowFor(selected, count, radius) {
@@ -44,8 +49,8 @@ function sync(model, rows) {
 function xFor(width, layout, offset) {
   const left = (width - layout.centerWidth) / 2
   if (!offset) return left
-  if (offset > 0) return left + layout.centerWidth + (offset - 1) * layout.step
-  return left - layout.sliceWidth + (offset + 1) * layout.step
+  if (offset > 0) return left + layout.centerWidth - layout.overlap + (offset - 1) * layout.step
+  return left + offset * layout.step
 }
 
 function contains(x, y, width, height, bevel) {
