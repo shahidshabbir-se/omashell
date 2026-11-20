@@ -339,8 +339,12 @@ OverlayShell {
           TilePath {
             box: tile
             readonly property var texture: tile.texture
-            readonly property real tw: Math.max(1, texture?.implicitWidth || 0)
-            readonly property real th: Math.max(1, texture?.implicitHeight || 0)
+            // The curve renderer divides texture bounds by the backing window's DPR.
+            // Use that DPR, not Screen.devicePixelRatio (which can round Wayland scales).
+            // Cached previews have 1× intrinsic density.
+            readonly property real dpr: root.devicePixelRatio
+            readonly property real tw: Math.max(1, (texture?.implicitWidth || 0) / dpr)
+            readonly property real th: Math.max(1, (texture?.implicitHeight || 0) / dpr)
             readonly property real zoom: Math.max(tile.width / tw, tile.height / th)
             fillColor: Colors.lighterBackground
             fillItem: texture
